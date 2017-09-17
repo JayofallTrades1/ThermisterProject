@@ -1,0 +1,124 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.1.52</VERSION>
+ <DEVICE>"ATmega16A"</DEVICE>
+ <WORKING_DIR>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16adef.inc</FILE>
+  <FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE>
+  <FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\Debug/AVM4.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>AVM4.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>AVM4.map</FILE>
+  <FILE>AVM4.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <RESET><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>44</LINE></RESET>
+  <dsp_buff_1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>54</LINE></dsp_buff_1>
+  <dsp_buff_2><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>55</LINE></dsp_buff_2>
+  <dsp_buff_3><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>56</LINE></dsp_buff_3>
+  <delay_30uS><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>75</LINE></delay_30uS>
+  <d30_loop><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>79</LINE></d30_loop>
+  <v_delay><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>106</LINE></v_delay>
+  <delay_40mS><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>125</LINE></delay_40mS>
+  <init_spi_lcd><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>141</LINE></init_spi_lcd>
+  <lcd_spi_transmit_CMD><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>164</LINE></lcd_spi_transmit_CMD>
+  <wait_transmit><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>175</LINE></wait_transmit>
+  <lcd_spi_transmit_DATA><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>196</LINE></lcd_spi_transmit_DATA>
+  <wait_transmit1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>207</LINE></wait_transmit1>
+  <init_lcd_dog><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>227</LINE></init_lcd_dog>
+  <start_dly_40ms><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>231</LINE></start_dly_40ms>
+  <func_set1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>235</LINE></func_set1>
+  <func_set2><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>241</LINE></func_set2>
+  <bias_set><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>247</LINE></bias_set>
+  <power_ctrl><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>255</LINE></power_ctrl>
+  <follower_ctrl><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>261</LINE></follower_ctrl>
+  <contrast_set><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>267</LINE></contrast_set>
+  <display_on><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>272</LINE></display_on>
+  <clr_display><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>278</LINE></clr_display>
+  <entry_mode><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>286</LINE></entry_mode>
+  <update_lcd_dog><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>305</LINE></update_lcd_dog>
+  <wr_line1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>312</LINE></wr_line1>
+  <snd_ddram_addr><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>315</LINE></snd_ddram_addr>
+  <snd_buff_1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>319</LINE></snd_buff_1>
+  <init_for_buff_2><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>328</LINE></init_for_buff_2>
+  <wr_line2><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>331</LINE></wr_line2>
+  <snd_ddram_addr2><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>334</LINE></snd_ddram_addr2>
+  <snd_buff_2><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>338</LINE></snd_buff_2>
+  <init_for_buff_3><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>347</LINE></init_for_buff_3>
+  <wr_line3><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>349</LINE></wr_line3>
+  <snd_ddram_addr3><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>352</LINE></snd_ddram_addr3>
+  <snd_buff_3><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\lcd_dog_asm_driver_m16A.inc</FILE><LINE>358</LINE></snd_buff_3>
+  <audelay_30uS><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>50</LINE></audelay_30uS>
+  <aud30_loop><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>54</LINE></aud30_loop>
+  <audelay_300uS><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>70</LINE></audelay_300uS>
+  <dly_300_loop><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>72</LINE></dly_300_loop>
+  <audelay_1mS><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>92</LINE></audelay_1mS>
+  <dloop111><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>96</LINE></dloop111>
+  <dloop222><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>98</LINE></dloop222>
+  <audelay_2mS><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>120</LINE></audelay_2mS>
+  <dloop11><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>124</LINE></dloop11>
+  <dloop22><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>126</LINE></dloop22>
+  <audelay_10mS><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>149</LINE></audelay_10mS>
+  <audloop1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>153</LINE></audloop1>
+  <audloop2><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>155</LINE></audloop2>
+  <audelay_300mS><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>175</LINE></audelay_300mS>
+  <audelay_300ms_loop><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>178</LINE></audelay_300ms_loop>
+  <send_audio_r17r16><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>227</LINE></send_audio_r17r16>
+  <check_busy><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>228</LINE></check_busy>
+  <check_busyy><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>232</LINE></check_busyy>
+  <reset_pulse><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>236</LINE></reset_pulse>
+  <take_clk_low><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>243</LINE></take_clk_low>
+  <send_r17r16_loop><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>249</LINE></send_r17r16_loop>
+  <out_one><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>255</LINE></out_one>
+  <pulse_clk><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>257</LINE></pulse_clk>
+  <take_clk_data_high><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\audio_playback_WTV20SD_beta.inc</FILE><LINE>265</LINE></take_clk_data_high>
+  <clr_dsp_buffs><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>172</LINE></clr_dsp_buffs>
+  <default_buff><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>196</LINE></default_buff>
+  <main><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>61</LINE></main>
+  <read_voltage><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>86</LINE></read_voltage>
+  <bin2BCD16><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>290</LINE></bin2BCD16>
+  <unpack_bcd_to_ascii><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>329</LINE></unpack_bcd_to_ascii>
+  <display><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>66</LINE></display>
+  <line4_message><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>211</LINE></line4_message>
+  <load_msg><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>238</LINE></load_msg>
+  <start_high><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>94</LINE></start_high>
+  <high_byte><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>98</LINE></high_byte>
+  <start_low><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>104</LINE></start_low>
+  <low_byte><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>108</LINE></low_byte>
+  <compare_high><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>114</LINE></compare_high>
+  <compare_low><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>118</LINE></compare_low>
+  <capture><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>123</LINE></capture>
+  <high_byte1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>127</LINE></high_byte1>
+  <low_byte1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>136</LINE></low_byte1>
+  <compare_high1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>141</LINE></compare_high1>
+  <end><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>149</LINE></end>
+  <compare_low1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>145</LINE></compare_low1>
+  <line3_message><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>210</LINE></line3_message>
+  <tone_5V><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>415</LINE></tone_5V>
+  <delay><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>391</LINE></delay>
+  <store_bytes><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>179</LINE></store_bytes>
+  <line1_message><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>208</LINE></line1_message>
+  <line2_message><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>209</LINE></line2_message>
+  <get_msg_byte><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>250</LINE></get_msg_byte>
+  <msg_loaded><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>256</LINE></msg_loaded>
+  <bBCDx_1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>296</LINE></bBCDx_1>
+  <bBCDx_2><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>305</LINE></bBCDx_2>
+  <bBCDx_3><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>306</LINE></bBCDx_3>
+  <ASCII_table><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>370</LINE></ASCII_table>
+  <table><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>379</LINE></table>
+  <delay1><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>393</LINE></delay1>
+  <here><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>395</LINE></here>
+  <tone_loop><FILE>c:\users\jay\documents\atmel studio\6.1\AVM4\AVM4\AVM4.asm</FILE><LINE>428</LINE></tone_loop>
+ </LABELS>
+</ASSEMBLER_INFO>

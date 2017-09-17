@@ -1,0 +1,191 @@
+
+AVRASM ver. 2.1.52  C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm Mon Sep 29 10:50:06 2014
+
+C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm(22): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16def.inc'
+                 
+                 
+                  * incr_decr: is a program that turns on all LEDs in the 7-segment display if a button is pressed. 
+                  *
+                  * Descripton:  This program also counts for the debouncing effect in the button. We must use a delay of 10us
+                  *				in order to determine if the button is still logic '0'
+                  *
+                  * inputs: PBSW in PINC0
+                  *
+                  * outputs: 7-segment display in PORTB
+                  *
+                  * resgister Assignment/Purposes:
+                  * r16 = GP/delay count(outer loop)
+                  * r17 = GP/delay count (inner loop)
+                  * 
+                  * stack depth: 2 Bytes
+                 
+                  *  Created: 9/26/2014 6:35:23 PM
+                  *   Author: Suphasith Usdonvudhikai & Brandon Conklin
+                  */ 
+                 		
+                 .LIST
+                 							
+                  setup: 
+                 										;configure I/O ports
+000000 ef0f      	ldi r16, $ff						;Outputs are at PORTB (7 Segment display) and PA0
+000001 bb07      	out DDRB, r16						;Set up PORTB as outputs
+000002 bb0a      	out DDRA, r16						;set up PORTA as outputs
+000003 e000      	ldi r16, $00						;input is at PINC 0, 6, 7 (Push Button Switch)
+000004 bb04      	out DDRC, r16						;Set up all of PORTC as inputs
+000005 ef0f      	ldi r16, $ff						;turn on all internal resistors 
+000006 bb05      	out PORTC, r16						;eliminates floating inputs 
+000007 e061      	ldi r22, $01						;over flow 
+                 
+                 
+                 reset:
+000008 e020      	ldi r18, $00						;initial counter 
+000009 9ad8      	sbi PORTA, 0						;turns off annunciator
+00000a c032      	rjmp bcd_7seg						;display a "0"
+                 
+                 wait_for_1:
+00000b b303      	in r16, PINC						;loads the inputs at PINC into register
+00000c 3f0f      	cpi r16, $FF						;compares all of PORTC to ensure logic 1s
+00000d f7e9      	brne wait_for_1						;if it isnt then we repeat
+                 
+                 										;delay for 10us
+00000e e00a      delay1:		ldi r16, 10					;intiazlize outer loop (1us)
+00000f eb1e      again1:		ldi r17, 190				;initialize inner loop (1us)
+000010 0000      here1:		nop							;waste clock cycle (2us)
+000011 0000      			nop									
+000012 951a       			dec r17						;r17 decrements until (z = 0) (1us)
+000013 f7e1      			brne here1					;keep repeating until (z = 0) (1/2 us)
+000014 950a      			dec r16						;outer loop decrements 
+000015 f7c9      			brne again1					;keep repeating until (z = 0) (1/2 us)
+                 
+                 check_for_1:
+000016 b303      	in r16, PINC						;checks if the PBSW is released
+000017 3f0f      	cpi r16, $FF						;compares all of PORTC again to verify logic 1's
+000018 f791      	brne wait_for_1						;repeat until it is logic 1's
+                 
+                 wait_for_0:
+000019 b303      	in r16, PINC						;input from PINC into r16
+00001a 9500      	com r16								;complement r16 since PORTC is mostly logic 1
+00001b 7c01      	andi r16, $C1						;and operation to mask all bits but PC0, PC6, PC7
+00001c f3e1      	breq wait_for_0						;repeat until button is pressed
+                 
+                 										;delay for 10us
+00001d e00a      delay2:		ldi r16, 10					;intiazlize outer loop (1us)
+00001e eb1e      again2:		ldi r17, 190				;initialize inner loop (1us)
+00001f 0000      here2:		nop							;waste clock cycle (2us)
+000020 0000      			nop									
+000021 951a       			dec r17						;r17 decrements until (z = 0) (1us)
+000022 f7e1      			brne here2					;keep repeating until (z = 0) (1/2 us)
+000023 950a      			dec r16						;outer loop decrements 
+000024 f7c9      			brne again2					;keep repeating until (z = 0) (1/2 us)
+                 		
+                 check_for_0:
+000025 b303      	in r16, PINC						;input from PINC into r16
+000026 9500      	com r16								;complement r16 since PORTC is mostly logic 1
+000027 7c01      	andi r16, $C1						;and operation to mask all bits but PC0, PC6, PC7
+000028 f311      	breq wait_for_1						;if button wasnt pressed then we start all over
+000029 2f40      	mov r20, r16						;if button was pressed we save the value into r20	
+                 
+                 main_loop:
+00002a 3041      	cpi r20, $01						;check if PBSW1 was pressed						
+00002b f021      	breq PBSW1							;if it is then go to PBSW1 program		
+00002c 3440      	cpi r20, $40						;check if PBSW2 was pressed
+00002d f051      	breq PBSW2							;if it is then go to PBSW2 program
+00002e 3840      	cpi r20, $80						;check if PBSW3 was pressed
+00002f f061      	breq PBSW3							;if it is then go to PBSW3 program
+                 
+                 PBSW1: 
+000030 9523      	inc r18								;if PBSW1 is pressed increment counter
+000031 302a      	cpi r18, $0A						;check if counter is less than 10
+000032 f050      	brlo bcd_7seg						;if it is then go to segment
+000033 e020      	ldi r18, $00						;if greater than 10 we roll over to 0
+000034 ef0f      	ldi r16, $ff						;setup register to turn off LEDs
+000035 bb08      	out PORTB, r16						;turn off all LEDs
+000036 98d8      	cbi PORTA, 0						;turn on annunciator 
+000037 cfd0      	rjmp reset							;go back
+                 
+                 PBSW2:	
+000038 952a      	dec	r18								;decrement counter
+000039 3f2f      	cpi r18, $ff						;check if counter is less than 0
+00003a f269      	breq reset							;if lower then we go to reset and display "0"
+00003b c001      	rjmp bcd_7seg						;if not then go to bcd_7seg
+                 	
+                 	
+                 PBSW3:
+00003c cfcb      	rjmp reset							;warm reset
+                 	
+                 
+                 
+                 bcd_7seg:
+00003d e0f0      	ldi ZH, high(table * 2)				;set z to point to start of table
+00003e e8ea      	ldi ZL, low(table * 2)				;
+00003f e000      	ldi r16, $00						;clear for later use
+000040 0fe2      	add ZL, r18							;add low byte
+000041 1ff0      	adc ZH, r16							;add in CY
+000042 9154      	lpm r21, Z							;load bit pattern from table into r18
+                 
+                 display:
+000043 bb58      	out PORTB, r21						;output pattern into 7-segment display
+000044 cfc6      	rjmp wait_for_1						;go back 
+                 
+000045 7940
+000046 3024
+000047 1219
+000048 7803
+000049 1000      table: .db $40,$79,$24,$30,$19,$12,$03,$78,$0,$10
+                 		  ; 0	1	2	3	4	5	6	7	8	9
+                 
+                 
+
+
+RESOURCE USE INFORMATION
+------------------------
+
+Notice:
+The register and instruction counts are symbol table hit counts,
+and hence implicitly used resources are not counted, eg, the
+'lpm' instruction without operands implicitly uses r0 and z,
+none of which are counted.
+
+x,y,z are separate entities in the symbol table and are
+counted separately from r26..r31 here.
+
+.dseg memory usage only counts static data declared with .byte
+
+"ATmega16" register use summary:
+r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 r5 :   0 r6 :   0 r7 :   0 
+r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
+r16:  26 r17:   4 r18:   7 r19:   0 r20:   4 r21:   2 r22:   1 r23:   0 
+r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 r29:   0 r30:   2 r31:   2 
+x  :   0 y  :   0 z  :   1 
+Registers used: 9 out of 35 (25.7%)
+
+"ATmega16" instruction use summary:
+.lds  :   0 .sts  :   0 adc   :   1 add   :   1 adiw  :   0 and   :   0 
+andi  :   2 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   6 brge  :   0 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   1 brlt  :   0 brmi  :   0 
+brne  :   6 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   1 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   2 cp    :   0 cpc   :   0 
+cpi   :   7 cpse  :   0 dec   :   5 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   4 inc   :   1 jmp   :   0 
+ld    :   0 ldd   :   0 ldi   :  14 lds   :   0 lpm   :   2 lsl   :   0 
+lsr   :   0 mov   :   1 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   4 or    :   0 ori   :   0 out   :   6 pop   :   0 
+push  :   0 rcall :   0 ret   :   0 reti  :   0 rjmp  :   5 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   1 sbic  :   0 sbis  :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
+sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   0 
+sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
+Instructions used: 19 out of 113 (16.8%)
+
+"ATmega16" memory use summary [bytes]:
+Segment   Begin    End      Code   Data   Used    Size   Use%
+---------------------------------------------------------------
+[.cseg] 0x000000 0x000094    138     10    148   16384   0.9%
+[.dseg] 0x000060 0x000060      0      0      0    1024   0.0%
+[.eseg] 0x000000 0x000000      0      0      0     512   0.0%
+
+Assembly complete, 0 errors, 0 warnings

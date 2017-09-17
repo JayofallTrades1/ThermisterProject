@@ -1,0 +1,267 @@
+
+AVRASM ver. 2.1.52  C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycl_freq\duty_cycl_freq\duty_cycl_freq.asm Mon Oct 06 01:12:44 2014
+
+C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycl_freq\duty_cycl_freq\duty_cycl_freq.asm(38): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16def.inc'
+                 
+                 
+                  * duty_cycle_freq.asm
+                  *
+                  *  Created: 10/3/2014 8:41:50 AM
+                  *   Author: Brandon Conklin and Suphasith Usdonvudhikai
+                  */ 
+                  ;This program is a modification of the previous program 
+                  ;which generates a PWM signal to produce
+                  ;a square wave with variable duty cycle. PWM 
+                  ;(Pulse Width Modulation) uses digital signals 
+                  ;'0' & '1' to control analog devices. This is done 
+                  ;by manipulating the duty cycle of a square-wave.
+                  ;
+                  ;Modification consists of using previously unused upper 
+                  ;nibble BCD to vary the frequency of the waveform.
+                  ;
+                  ;Time high=%of duty cycle
+                  ;
+                  ;Represented on an LED
+                  ;
+                  ;74HC74 Dual D-Type FF also used to produce 
+                  ;square wave with half frequency
+                  ;
+                  ;74HC74 D-FF configured as a T-FF
+                  ;
+                  ;INPUTS=2x 4-bit DIP switches (High and low Nibble)
+                  ;		 PBSW LOAD switch
+                  ;		 Internal ATMega16A pull-up resistors
+                  ;		 ATMega16A PORT-D (PD0-7)
+                  ;				   PC0 (PBSW)
+                  ;OUTPUTS=2x LED (active-high_ to represent PWM 
+                  ;		  74HC74 D-FF (as a T-FF)
+                  ;		  7-seg to represent duty cycle %
+                  ;        ATMega16A PORT-B (PB0-7)
+                  ;		            PA0 (LED & D-FF)
+                 
+                  .list
+                 
+                 setup:
+000000 e50f      		ldi r16, LOW(RAMEND)		;load SPL with low byte of
+000001 bf0d      		out SPL, r16				;RAMEND Address
+000002 e004      		ldi r16, HIGH(RAMEND)		;load SPH with high byte of
+000003 bf0e      		out SPH, r16				;RAMEND Address
+000004 ef0f      		ldi r16, $FF				;Initialize as outputs... 
+000005 bb07      		out DDRB, r16				;PORT-B
+000006 bb0a      		out DDRA, r16				;PORT-A
+000007 e000      		ldi r16, $00				;initialize as inputs...
+000008 bb01      		out DDRD, r16				;PORT-D
+000009 bb04      		out DDRC, r16				;PORT-C
+00000a ef0f      		ldi r16, $FF				;initialize pullups of...
+00000b bb02      		out PORTD, r16				;PORT-D
+00000c bb05      		out PORTC, r16				;PORT-C
+00000d e400      		ldi r16, $40				;initialize
+00000e bb08      		out PORTB, r16				;7-seg to '0'
+00000f 98d8      		cbi PORTA, 0				;make sure wave low and LED off
+                 
+                 wait:
+000010 9998      		sbic PINC, 0				;read the switch value of LOAD PBSW
+000011 cffe      		rjmp wait					;loop until set '0' (pressed)
+                 main:
+000012 9b98      		sbis PINC, 0				;read the switch value of LOAD PBSW
+000013 cffe      		rjmp main					;loop until open '1' (released)
+000014 e03a      		ldi r19, $0A				;set loop counter for later
+000015 b320      		in r18, PIND				;read switches of PORT-D (low nibble)
+000016 2f52      		mov r21, r18				;copy BCD for low nibble masking
+000017 702f      		andi r18, $0F				;mask upper nibble of PORT-D
+000018 7f50      		andi r21, $F0				;mask lower nibble of PORT-D
+000019 3050      		cpi r21, $00				;check if frequency BCD is '0'
+00001a f0b1      		breq freq_0					;if freq='0' jump
+00001b 9552      		swap r21					;swap upper nibble to lower for z-pointer later on
+00001c d039      		rcall frequency				;jump to subroutine to modify frequency
+00001d 2f42      		mov r20, r18				;copy of BCD nibble
+00001e 302a      		cpi r18, $0A				;check for BCD nibble >9
+00001f f45c      		brge PWM_9					;if BCD nibble >9, jump to special PWM
+000020 3020      		cpi r18, $00				;check if the nibble is 0
+000021 f019      		breq PWM_0					;if it is then we jump to program
+000022 d026      		rcall bcd7_seg				;jump to table-lookup
+000023 d012      		rcall PWM					;jump to subroutine that produces PWM (1KHz)
+000024 cfed      		rjmp main					;restart main looping
+                 		
+                 PWM_0:
+000025 e006      		ldi r16, $06				;load r16 to be ready for output
+000026 bb08      		out PORTB, r16				;display a "E' on the 7 seg
+000027 98d8      		cbi PORTA, 0				;output 0 volts
+000028 9998      		sbic PINC, 0				;check if button was pressed
+000029 cffb      		rjmp PWM_0					;if it is not then we repeat and display a 'E'
+00002a cfe7      		rjmp main					;if pressed we go to main
+                 
+                 PWM_9:
+00002b e006      		ldi r16, $06				;load r16 to be ready for output
+00002c bb08      		out PORTB, r16				;display 'E' on the 7-seg
+00002d 9ad8      		sbi PORTA, 0				;turn on 5 volts
+00002e 9998      		sbic PINC, 0				;check if button was pressed
+00002f cffb      		rjmp PWM_9					;if it is not then we repeat and display a 'E'
+000030 cfe1      		rjmp main					;if pressed we go to main
+                 
+                 freq_0:
+000031 e020      		ldi r18, 0					;make the low nibble '0' so PA0 is '0'
+000032 2f42      		mov r20, r18				;copy for reload at end of delay
+000033 9573      		inc r23						;inc so that if still '0', wont go all the way around
+000034 d001      		rcall PWM					;jump to PWM
+000035 cfdc      		rjmp main					;return to main
+                 
+                 //SUBROUTINES BELOW
+                 
+                 ;PWM - self-contained subroutine for the outputting of the PWM
+                 ;	frequency at given by the previous subroutine
+                 ;	Uses nested looping delay of an inner and
+                 ;	an outer loop to accomplish different frequencies.
+                 ;
+                 ;inputs: inner and outer looping counter (r16 and r17)
+                 ;		 low nibble BCD value (r18)
+                 ;		 copy of low nibble BCD value to reset (r20)
+                 ;		 PC0 to check if PBSW pressed again
+                 ;		 $0A loop count value to generate the loop 10x (100%) (r19)
+                 ;outputs: PA0 high when r18>0
+                 ;		  PA0 low when r18<=0
+                 
+                 PWM:
+000036 3021      		cpi r18, $01				;compare to see if r18 (nibble) is '0'
+000037 f014      		brlt less
+000038 9ad8      		sbi PORTA, 0				;set logic-1 to PA0, high
+000039 c001      		rjmp delay_1ms
+                 	less:
+00003a 98d8      		cbi PORTA, 0				;clear logic-0 to PA0, low
+                 		//start of looping portion
+                 	delay_1ms:
+00003b 2f17      		mov r17, r23				;outer delay countdown value
+                 	outer_loop:
+00003c 2f07      		mov r16, r23				;inner delay countdown value
+                 	inner_loop:
+00003d 950a      		dec r16						;decrement the inner delay countdown 
+00003e f7f1      		brne inner_loop				;repeat until '0'=r16
+                 	check_outer_cnt:
+00003f 951a      		dec r17						;dec outer loop delay countdown
+000040 f7d9      		brne outer_loop				;repeat until '0'=r17
+                 		//end of looping portion
+000041 952a      		dec r18						;subtract 1 from BCD count
+000042 953a      		dec r19						;subtract one from loop count
+000043 f791      		brne PWM					;if r19!=0, keep looping
+000044 e03a      		ldi r19, $0A				;reset loop count
+000045 2f24      		mov r18, r20				;reset nibble count
+000046 9998      		sbic PINC, 0				;see if switch has been pressed again
+000047 cfee      		rjmp PWM					;loop back to output again if PBSW not pressed
+000048 9508      		ret							;return to main code
+                 
+                 ;bcd7_seg - Self-contained subroutine that uses table lookups to 
+                 ;		find and display decimal percentage of duty cycle being 
+                 ;		generated, onto the 7-seg.
+                 ;Copy of table provided by Scott a couple labs back
+                 ;
+                 ;inputs: Z-pointer
+                 ;			-ZH is high Z
+                 ;			-ZL is low Z
+                 ;		 r16 is a place holder for adc
+                 ;		 r18 is low nibble BCD count for the duty cycle
+                 ;outputs: result of Z point are loaded into r22
+                 ;		  displayed out to PORT-B
+                 
+                 bcd7_seg:
+000049 e0f0      		ldi ZH, high (table * 2)	;set Z to point to start of table
+00004a eae2      		ldi ZL, low (table * 2)		;
+00004b e000      		ldi r16, $00				;clear for add w/ carry
+00004c 0fe2      		add ZL, r18					;add low byte
+00004d 1ff0      		adc ZH, r16					;add in the CY
+00004e 9164      		lpm r22, Z					;load bit pattern from table into r18
+                 		display:
+00004f bb68      		out PORTB, r22				;output pattern for 7-seg
+000050 9508      		ret							;return to main
+                 
+                 ;table of 7-seg bit patterns to display digits 0-8
+000051 7940
+000052 3024
+000053 1219
+000054 7803
+000055 1000      table: .db $40,$79,$24,$30,$19,$12,$03,$78,$0,$10
+                 		   ;0    1   2   3   4   5   6   7  8   9
+                 
+                 ;frequency - Self-contained subroutine that uses table lookups to 
+                 ;		find and record the frequeny values for the PWM.
+                 ;
+                 ;inputs: Z-pointer
+                 ;			-ZH is high Z
+                 ;			-ZL is low Z
+                 ;		 r16 is a place holder for adc
+                 ;		 r21 is swapped (was high) low nibble BCD count for the frequency
+                 ;outputs: result of Z point are loaded into r23
+                 ;		  sent back for later use in delay loop
+                 
+                 frequency:
+000056 e0f0      		ldi ZH, high (freq * 2)		;set Z to point to start of freq_table
+000057 ebea      		ldi ZL, low (freq * 2)		;
+000058 e000      		ldi r16, $00				;clear for adc
+000059 0fe5      		add ZL, r21					;add low byte
+00005a 1ff0      		adc ZH, r16					;add in C
+00005b 9174      		lpm r23, Z					;load bit into r23
+00005c 9508      		ret
+                 
+                 ;table of frequencies
+00005d 0f00
+00005e 0d0e
+00005f 0b0c
+000060 090a
+000061 0708
+000062 0506
+000063 0304
+000064 0102      freq: .db $00,$0F,$0E,$0D,$0C,$0B,$0A,$09,$08,$07,$06,$05,$04,$03,$02,$01
+                 		  ;LOW--------------------------------------------------------HIGH
+
+
+RESOURCE USE INFORMATION
+------------------------
+
+Notice:
+The register and instruction counts are symbol table hit counts,
+and hence implicitly used resources are not counted, eg, the
+'lpm' instruction without operands implicitly uses r0 and z,
+none of which are counted.
+
+x,y,z are separate entities in the symbol table and are
+counted separately from r26..r31 here.
+
+.dseg memory usage only counts static data declared with .byte
+
+"ATmega16" register use summary:
+r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 r5 :   0 r6 :   0 r7 :   0 
+r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
+r16:  25 r17:   2 r18:  12 r19:   3 r20:   3 r21:   5 r22:   2 r23:   4 
+r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 r29:   0 r30:   4 r31:   4 
+x  :   0 y  :   0 z  :   2 
+Registers used: 11 out of 35 (31.4%)
+
+"ATmega16" instruction use summary:
+.lds  :   0 .sts  :   0 adc   :   2 add   :   2 adiw  :   0 and   :   0 
+andi  :   2 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   2 brge  :   1 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   1 brmi  :   0 
+brne  :   3 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   3 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
+cpi   :   4 cpse  :   0 dec   :   4 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :   1 jmp   :   0 
+ld    :   0 ldd   :   0 ldi   :  17 lds   :   0 lpm   :   4 lsl   :   0 
+lsr   :   0 mov   :   6 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  12 pop   :   0 
+push  :   0 rcall :   4 ret   :   3 reti  :   0 rjmp  :  10 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   2 sbic  :   4 sbis  :   1 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
+sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   0 
+sub   :   0 subi  :   0 swap  :   1 tst   :   0 wdr   :   0 
+Instructions used: 23 out of 113 (20.4%)
+
+"ATmega16" memory use summary [bytes]:
+Segment   Begin    End      Code   Data   Used    Size   Use%
+---------------------------------------------------------------
+[.cseg] 0x000000 0x0000ca    176     26    202   16384   1.2%
+[.dseg] 0x000060 0x000060      0      0      0    1024   0.0%
+[.eseg] 0x000000 0x000000      0      0      0     512   0.0%
+
+Assembly complete, 0 errors, 0 warnings

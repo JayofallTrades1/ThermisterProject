@@ -1,0 +1,5 @@
+
+AVRASM ver. 2.1.52  C:\Users\Jay\Documents\Atmel Studio\6.1\LAB_8\LAB_8\LAB_8.asm Wed Oct 29 23:50:19 2014
+
+C:\Users\Jay\Documents\Atmel Studio\6.1\LAB_8\LAB_8\LAB_8.asm(3): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16adef.inc'
+C:\Users\Jay\Documents\Atmel Studio\6.1\LAB_8\LAB_8\LAB_8.asm(4): error: Cannot find include file: lcd_dog__asm_driver_m16A.inc

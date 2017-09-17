@@ -1,0 +1,1342 @@
+
+AVRASM ver. 2.1.52  C:\Users\Jay\documents\atmel studio\6.1\AVM4\AVM5\AVM5.asm Tue Nov 18 14:52:19 2014
+
+C:\Users\Jay\documents\atmel studio\6.1\AVM4\AVM5\AVM5.asm(45): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16adef.inc'
+C:\Users\Jay\documents\atmel studio\6.1\AVM4\AVM5\AVM5.asm(46): Including file 'C:\Users\Jay\documents\atmel studio\6.1\AVM4\AVM5\lcd_dog_asm_driver_m16A.inc'
+C:\Users\Jay\documents\atmel studio\6.1\AVM4\AVM5\AVM5.asm(47): Including file 'C:\Users\Jay\documents\atmel studio\6.1\AVM4\AVM5\audio_playback_WTV20SD_beta.inc'
+                 
+                 
+                  * avm6.asm
+                  *
+                  *  Created: 11/14/2014 10:31:51 AM
+                  *   Author: Brandon Conklin and Suphasith Usdonvudhikai
+                  */ 
+                  ;A captured-voltage voltmeter that will us an audio-output system to read
+                  ;off voltage digits to the user.
+                  ;
+                  ;Voltage values will also be displayed on LCD screen.
+                  ;
+                  ;Voltmeter has range of 0V-4.096V, due to REF198
+                  ;1mV accuracy
+                  ;ADC system is MAX144
+                  ;
+                  ;MAX 144, LCD, and audio-output all utilize SPI data transfer
+                  ;
+                  ;MAX144 outputs 12-bit data. High 8 read in first, followed by low 4
+                  ;
+                  ;New audio-output hardware is utilized using provided include file that 
+                  ;contains all needed software and subroutines to properly run
+                  ;
+                  ;Capture-mode will hold voltage (capture it) until system returns down to 0V
+                  ;thanks to a pull-down resistor. After returning to 0V, system is ready again 
+                  ;to capture voltages.
+                  ;
+                  ;Now introducing, MULTI-MODE!
+                  ;User will be able to choose from 4 modes: RUN, HOLD, AUDIO CAPTURE, and CAP/STORE
+                  ;PBSWs and INT0 will be utilized
+                  ;Cycling Left (LF) or Right (RT) and pressing GO to select mode
+                  ;Pressing any PBSW will return to mode select screen
+                  ;
+                  ;For CAP/STORE MODE, Pressing UP will enter review section where the user can
+                  ;cycle through old voltage values as they are display to them on the LCD  
+                 
+                 
+                  
+                  .CSEG
+                  .org 0
+000000 c0cc       rjmp RESET						;avoid running through .include subs
+                  .org $02
+000002 c372       rjmp toggle_isr					;GO(PBSW5) was pressed
+                 
+                 .list
+                 
+                  .DSEG
+000090           old_voltage_val: .byte 16		//save 16 bytes; one for each digit, x8 values
+0000a0           cap_store_val: .byte 1			//save 1 byte as a reference for cap/store
+                 								//$FF=enabled, $00=disabled
+0000a1           see_stored_val: .byte 1			//save 1 byte as reference to see stored values
+                 								//$FF=yes, $00=no
+                  .CSEG
+                 RESET:
+0000cd e004      	ldi r16, High(RAMEND)		;stack pointer setup
+0000ce bf0e      	out SPH, r16
+0000cf e50f      	ldi r16, Low(RAMEND)
+0000d0 bf0d      	out SPL, r16
+                 
+0000d1 ef0f      	ldi r16, $FF				;initialize as outputs...
+0000d2 bb07      	out DDRB, r16				;PORT-B (LCD Display)
+0000d3 ef07      	ldi r16, $F7
+0000d4 bb0a      	out DDRA, r16				;PORT-A (Audio), except PA3(BUSY)
+                 	//sbi PORTA, 3				;pull-up for busy
+0000d5 e000      	ldi r16, $00				;Initialize as Input...
+0000d6 bb01      	out DDRD, r16				;Port-D
+0000d7 ef0f      	ldi r16, $FF				;initialize pull-ups...
+0000d8 bb02      	out PORTD, r16				;of PORT-D
+0000d9 9aa0      	sbi DDRC, 0					;initiliaze buzzer
+0000da 9aa8      	sbi PORTC, 0				;turn it off
+                 
+                 
+0000db 9ac0      	sbi PORTB, 0				;turnoff MAX144
+                 
+0000dc df59      	rcall init_lcd_dog			;initialize the LCD display (1x)
+0000dd d1e1      	rcall clr_dsp_buffs			;clear buff values (1x)
+                 	//rcall default_buff			;set up buffer for display
+0000de df75      	rcall update_lcd_dog		;display buffers onto lcd
+                 
+                 main:	
+0000df 9468      	set							;turn on t-flag to prevent loop
+0000e0 e000      	ldi r16, $00				;disable interrupt request...
+0000e1 bf0b      	out GICR, r16				;at INT0
+0000e2 94f8      	cli							;disable global interrupt to prevent INT0
+0000e3 e0f7      	ldi ZH, HIGH(line5_message<<1)
+0000e4 eae2      	ldi ZL, LOW(line5_message<<1)
+0000e5 d1e1      	rcall load_msg
+0000e6 e0f7      	ldi ZH, HIGH(line2_message<<1)
+0000e7 e6ec      	ldi ZL, LOW(line2_message<<1)
+0000e8 d1de      	rcall load_msg
+0000e9 e000      	ldi r16, $00				;load disable
+0000ea 9300 00a0 	sts cap_store_val, r16		;disable cap/store
+                 	
+                 	capture_once:
+0000ec d1c1      	rcall delay_10mS			;prevent switch bouncing
+0000ed b300      	in r16, PIND				;read PBSW
+0000ee 7f08      	andi r16, $F8				;keep PBSW
+0000ef 3f08      	cpi r16, $F8					;compare to all PBSWs high
+0000f0 f7d9      	brne capture_once			;wait for all to be high
+0000f1 e0f7      	ldi ZH, HIGH(line6_message<<1)
+0000f2 ebe4      	ldi ZL, LOW(line6_message<<1)
+0000f3 d1d3      	rcall load_msg
+0000f4 df5f      	rcall update_lcd_dog		;output to display
+                 	capture_loop:
+0000f5 9b86      	sbis PIND, 6				;skip if RT not pressed
+0000f6 c004      	rjmp run_once				;enter run screen 
+0000f7 9b87      	sbis PIND, 7				;skip if GO not pressed
+0000f8 d033      	rcall capture_mode			;enter capture mode
+0000f9 f72e      	brtc main					;upon returning, start over
+0000fa cffa      	rjmp capture_loop			;wait for user input...
+                 	
+                 	run_once:
+0000fb d1b2      	rcall delay_10mS			;prevent switch bouncing
+0000fc b300      	in r16, PIND				;read PBSW
+0000fd 7f08      	andi r16, $F8				;keep PBSW
+0000fe 3f08      	cpi r16, $F8				;compare to all PBSWs high
+0000ff f7d9      	brne run_once			;wait for all to be high
+000100 e0f7      	ldi ZH, HIGH(line7_message<<1)
+000101 ece6      	ldi ZL, LOW(line7_message<<1)
+000102 d1c4      	rcall load_msg
+000103 df50      	rcall update_lcd_dog		;output to display
+                 	run_loop:
+000104 9b86      	sbis PIND, 6				;skip if RT not pressed
+000105 c006      	rjmp hold_once				;enter hold screen
+000106 9b87      	sbis PIND, 7				;skip if GO not pressed
+000107 d048      	rcall run_mode				;enter run mode
+000108 9b85      	sbis PIND, 5				;skip if LF not pressed
+000109 cfe2      	rjmp capture_once			;enter capture screen
+00010a f6a6      	brtc main					;upon reutnr, start over
+00010b cff8      	rjmp run_loop				;wait for user input...
+                 	
+                 	hold_once:
+00010c d1a1      	rcall delay_10mS			;prevent switch bouncing
+00010d b300      	in r16, PIND				;read PBSW
+00010e 7f08      	andi r16, $F8				;keep PBSW
+00010f 3f08      	cpi r16, $F8				;compare to all PBSWs high
+000110 f7d9      	brne hold_once			;wait for all to be high
+000111 e0f7      	ldi ZH, HIGH(line8_message<<1)
+000112 ede8      	ldi ZL, LOW(line8_message<<1)
+000113 d1b3      	rcall load_msg
+000114 df3f      	rcall update_lcd_dog		;output to display
+                 	hold_loop:
+000115 9b86      	sbis PIND, 6				;skip if RT not pressed
+000116 c006      	rjmp store_once				;enter store screen
+000117 9b87      	sbis PIND, 7				;skip if GO not pressed
+000118 d050      	rcall hold_mode				;enter hold mode
+000119 9b85      	sbis PIND, 5				;skip if LF not pressed
+00011a cfe0      	rjmp run_once				;enter run screen
+00011b f61e      	brtc main					;return to main
+00011c cff8      	rjmp hold_loop				;wait for user input
+                 
+                 	store_once:
+00011d d190      	rcall delay_10mS			;prevent switch bouncing
+00011e b300      	in r16, PIND				;read PBSW
+00011f 7f08      	andi r16, $F8				;keep PBSW
+000120 3f08      	cpi r16, $F8				;compare to all PBSWs high
+000121 f7d9      	brne store_once			;wait for all to be high
+000122 e0f7      	ldi ZH, HIGH(line10_message<<1)
+000123 efec      	ldi ZL, LOW(line10_message<<1)
+000124 d1a2      	rcall load_msg
+000125 df2e      	rcall update_lcd_dog		;output to display
+                 	store_loop:
+000126 9b87      	sbis PIND, 7				;skip if GO not pressed
+000127 d05b      	rcall store_mode			;enter store mode
+000128 9b85      	sbis PIND, 5				;skip if LF not pressed
+000129 cfe2      	rjmp hold_once				;enter hold screen
+                 	;************************************************
+00012a f756      	brtc hold_loop				;unable to reach main on its own
+                 	;OUT-OF-REACH ERROR			;jump to hold_loop to then make
+                 								;the jump from there
+                 	;************************************************
+00012b cffa      	rjmp store_loop				;wait for user input
+                 	
+                 
+                 ;********************************************************************
+                 ;capture_mode- is a self-containted, independent subroutine in which 
+                 ;the voltmeter will read an incoming voltage value, display it on the
+                 ;LCD, and keep it displayed there until a new voltage is read, after
+                 ;it has returned to 0V.
+                 ;
+                 ;Is the main code of "evm1c"
+                 ;
+                 ;Utilizes multiple nested subroutines. 
+                 ;
+                 ;Won't return to main program until user tells it to through use of
+                 ;polling the INT0 interrupt flag and using t-flag handshaking
+                 capture_mode:
+00012c 94e8      	clt
+00012d d187      	rcall default_buff			;set up buffer for display
+00012e df25      		rcall update_lcd_dog		;display buffers onto lcd
+00012f d17e      	rcall delay_10mS			;prevent switch bouncing
+000130 b300      	in r16, PIND				;read PBSW
+000131 7f08      	andi r16, $F8				;keep PBSW
+000132 3f08      	cpi r16, $F8				;compare to all PBSWs high
+000133 f7c1      	brne capture_mode			;wait for all to be high
+000134 9478      	sei
+000135 ef0f      	ldi r16, $FF				;}
+000136 bf0a      	out GIFR, r16				;}clr into flag to avoid pending interrupts
+000137 e003      	ldi r16, $03				;INT0 will interrupt...
+000138 bf05      	out MCUCR, r16				;on the rising edges
+000139 e400      	ldi r16, 1 << INT0			;enable interrupt request...
+00013a bf0b      	out GICR, r16				;at INT0
+                 
+                 capturing:
+00013b d1ac      	rcall read_voltage			;uses SPI protocol to read in voltages
+00013c d1e4      	rcall bin2BCD16				;convert
+00013d d1fc      	rcall unpack_bcd_to_ascii	;convert to ascii
+                 
+                 display:
+00013e e010      	ldi r17, $00				;high byte of audio output
+00013f ef0f      	ldi r16, $FF				;setup portB 
+000140 bb07      	out DDRB, r16				;as outputs
+                 	//cbi PORTB, 4				;CLR PB4 to enable LCD Connection 
+                 	//ldi ZH, HIGH(line4_message<<1)
+                 	//ldi ZL, LOW(line4_message<<1)
+                 	//rcall load_msg
+000141 df12      	rcall update_lcd_dog		;output to display
+000142 2d03      	mov r16, r3					;1s digit of voltage
+000143 df6c      	rcall send_audio_r17r16
+000144 e00a      	ldi r16, $0A				;'point'
+000145 df6a      	rcall send_audio_r17r16
+000146 2d02      	mov r16, r2					;tenth's digit
+000147 df68      	rcall send_audio_r17r16
+000148 2d01      	mov r16, r1					;hundredth's digit
+000149 df66      	rcall send_audio_r17r16
+00014a 2d00      	mov r16, r0					;thousand's digit
+00014b df64      	rcall send_audio_r17r16
+00014c f00e      	brts end_capture			;if t-flag set from INT, end mode
+00014d cfed      	rjmp capturing				;repeat
+                 	end_capture:
+00014e 94e8      	clt							;clr t-flag
+00014f 9508      	ret
+                 
+                 /*********************************************************************/
+                 ;run_mode: Self-contained subroutine which is a modifiction of "evm1a"
+                 ;Will simply read and display, continuously, incoming voltages that are 
+                 ;read.
+                 ;
+                 ;Utilizes multiple nested subroutines.
+                 ;
+                 ;Won't return to main program until user tells it to through use of
+                 ;polling the INT0 interrupt flag and using t-flag handshaking
+                 run_mode:
+000150 94e8      	clt
+000151 d163      	rcall default_buff			;set up buffer for display
+000152 df01      		rcall update_lcd_dog		;display buffers onto lcd
+                 
+000153 d15a      	rcall delay_10mS			;prevent switch bouncing
+000154 b300      	in r16, PIND				;read PBSW
+000155 7f08      	andi r16, $F8				;keep PBSW
+000156 3f08      	cpi r16, $F8				;compare to all PBSWs high
+000157 f7c1      	brne run_mode				;wait for all to be high
+000158 9478      	sei
+000159 ef0f      	ldi r16, $FF				;}
+00015a bf0a      	out GIFR, r16				;}clr into flag to avoid pending interrupts
+00015b e003      	ldi r16, $03				;INT0 will interrupt...
+00015c bf05      	out MCUCR, r16				;on the rising edges
+00015d e400      	ldi r16, 1 << INT0			;enable interrupt request...
+00015e bf0b      	out GICR, r16				;at INT0
+                 
+                 running:
+00015f d176      	rcall read_voltage_run			;uses SPI protocol to read in voltages
+000160 d1c0      	rcall bin2BCD16				;convert
+000161 d1d8      	rcall unpack_bcd_to_ascii	;convert to ascii
+                 
+                 display_run:
+000162 ef0f      	ldi r16, $FF				;setup portB 
+000163 bb07      	out DDRB, r16				;as outputs
+                 	//cbi PORTB, 4				;CLR PB4 to enable LCD Connection 
+000164 deef      	rcall update_lcd_dog		;output to 
+000165 f00e      	brts end_run
+000166 cff8      	rjmp running				;repeat
+                 	end_run:
+000167 94e8      	clt
+000168 9508      	ret							;back to menu select
+                 
+                 
+                 /*********************************************************************/
+                 ;hold_mode: Self-contained subroutine which is a modifiction of "evm1b"
+                 ;Will simply continue to display whatever value was previosuly read,
+                 ;either from the capture or run mode.
+                 ;
+                 ;Utilizes multiple nested subroutines.
+                 ;
+                 ;Won't return to main program until user tells it to through use of
+                 ;polling the INT0 interrupt flag and using t-flag handshaking
+                 hold_mode:
+000169 94e8      	clt
+00016a d14a      	rcall default_buff			;set up buffer for display
+00016b dee8      		rcall update_lcd_dog		;display buffers onto lcd
+00016c d141      	rcall delay_10mS			;prevent switch bouncing
+00016d b300      	in r16, PIND				;read PBSW
+00016e 7f08      	andi r16, $F8				;keep PBSW
+00016f 3f08      	cpi r16, $F8				;compare to all PBSWs high
+000170 f7c1      	brne hold_mode			;wait for all to be high
+000171 9478      	sei
+000172 ef0f      	ldi r16, $FF				;}
+000173 bf0a      	out GIFR, r16				;}clr into flag to avoid pending interrupts
+000174 e003      	ldi r16, $03				;INT0 will interrupt...
+000175 bf05      	out MCUCR, r16				;on the rising edges
+000176 e400      	ldi r16, 1 << INT0			;enable interrupt request...
+000177 bf0b      	out GICR, r16				;at INT0
+                 
+000178 ef0f      	ldi r16, $FF				;}PORT-B outputs for LCD
+000179 bb07      	out DDRB, r16				;}
+                 
+                 	//cbi PORTB, 4					;clear PB4 to enable LCD connection
+00017a d1bf      	rcall unpack_bcd_to_ascii	;reload previous voltage value to buffers
+00017b e0f7      	ldi ZH, High(line9_message<<1)
+00017c eeea      	ldi ZL, Low(line9_message<<1)
+00017d d149      	rcall load_msg
+00017e ded5      	rcall update_lcd_dog		;HOLD previous voltage
+                 
+                 holding:
+00017f f00e      	brts end_hold				;end when user wants to
+000180 cffe      	rjmp holding				;wait for user input
+                 	end_hold:
+000181 94e8      	clt							;clear t-flag
+000182 9508      	ret							;back to menu select
+                 
+                 
+                 ;********************************************************************
+                 ;store_mode- is a self-containted, independent subroutine in which 
+                 ;the voltmeter will read an incoming voltage value, display it on the
+                 ;LCD, and keep it displayed there until a new voltage is read, after
+                 ;it has returned to 0V. 
+                 ;
+                 ;It will also save the value to a memory location (up to 8 voltages)
+                 ;
+                 ;
+                 ;Utilizes multiple nested subroutines. 
+                 ;
+                 ;Won't return to main program until user tells it to through use of
+                 ;polling the INT0 interrupt flag and using t-flag handshaking
+                 ;
+                 ;If user had pressed UP, however, instead on t-flag handshaking, 
+                 ;system will enter the review storage section of the mode.
+                 ;
+                 ;Review section is exited by detection of a new voltage value on Port-D
+                 
+                 store_mode:
+000183 94e8      	clt
+000184 ef0f      	ldi r16, $FF				;load and save...
+000185 9300 00a0 	sts cap_store_val, r16		;to enable cap/store	
+                 
+000187 d12d      	rcall default_buff			;set up buffer for display
+000188 decb      		rcall update_lcd_dog		;display buffers onto lcd
+000189 d124      	rcall delay_10mS			;prevent switch bouncing
+00018a b300      	in r16, PIND				;read PBSW
+00018b 7f08      	andi r16, $F8				;keep PBSW
+00018c 3f08      	cpi r16, $F8				;compare to all PBSWs high
+00018d f7a9      	brne store_mode				;wait for all to be high
+                 
+                 
+                 count:
+00018e e040      	ldi r20, $00				;set voltage value count to 0
+00018f d125      	rcall default_buff			;set up buffer for display
+000190 dec3      		rcall update_lcd_dog		;display buffers onto lcd
+                 cap:
+000191 9478      	sei
+000192 ef0f      	ldi r16, $FF				;}
+000193 bf0a      	out GIFR, r16				;}clr into flag to avoid pending interrupts
+000194 e003      	ldi r16, $03				;INT0 will interrupt...
+000195 bf05      	out MCUCR, r16				;on the rising edges
+000196 e400      	ldi r16, 1 << INT0			;enable interrupt request...
+000197 bf0b      	out GICR, r16				;at INT0
+000198 e000      	ldi r16, $00				;load and save
+000199 9300 00a1 	sts see_stored_val, r16		;to disable see values
+00019b 9543      	inc r20						;each value of r20=voltage value cap/stored
+00019c 934f      	push r20					;save voltage count
+00019d d14a      	rcall read_voltage			;uses SPI protocol to read in voltages
+00019e d182      	rcall bin2BCD16				;convert
+00019f d19a      	rcall unpack_bcd_to_ascii	;convert to ascii
+0001a0 914f      	pop r20						;retrieve voltage count
+                 storing_1:
+0001a1 3041      	cpi r20, $01				;voltage 1?
+0001a2 f429      	brne storing_2				;no
+0001a3 92e0 0090 	sts old_voltage_val, r14		;save one's of v1
+0001a5 92d0 0091 	sts old_voltage_val+1, r13	;save tenth's of v1
+                 	//sts old_voltage_val+2, r1	;save hundreth's of v1
+                 	//sts old_voltage_val+3, r0	;save thousandth's of v1
+0001a7 c030      	rjmp disp					;jump to display
+                 storing_2:
+0001a8 3042      	cpi r20, $02				;voltage 2?
+0001a9 f429      	brne storing_3				;no
+0001aa 92e0 0092 	sts old_voltage_val+2, r14	;save one's of v2
+0001ac 92d0 0093 	sts old_voltage_val+3, r13	;save tenth's of v2
+                 	//sts old_voltage_val+6, r1	;save hundreth's of v2
+                 	//sts old_voltage_val+7, r0	;save thousandth's of v2
+0001ae c029      	rjmp disp
+                 storing_3:
+0001af 3043      	cpi r20, $03				;voltage 3?
+0001b0 f429      	brne storing_4				;no
+0001b1 92e0 0094 	sts old_voltage_val+4, r14	;save one's of v3
+0001b3 92d0 0095 	sts old_voltage_val+5, r13	;save tenth's of v3
+                 	//sts old_voltage_val+10, r1	;save hundreth's of v3
+                 	//sts old_voltage_val+11, r0	;save thousandth's of v3
+0001b5 c022      	rjmp disp					;jump to display
+                 storing_4:
+0001b6 3044      	cpi r20, $04				;voltage 4?
+0001b7 f429      	brne storing_5				;no
+0001b8 92e0 0096 	sts old_voltage_val+6, r14	;save one's of v4
+0001ba 92d0 0097 	sts old_voltage_val+7, r13	;save tenth's of v4
+                 	//sts old_voltage_val+14, r1	;save hundreth's of v4
+                 	//sts old_voltage_val+15, r0	;save thousandth's of v4
+0001bc c01b      	rjmp disp					;jump to display
+                 storing_5:
+0001bd 3045      	cpi r20, $05				;voltage 5?
+0001be f429      	brne storing_6				;no
+0001bf 92e0 0098 	sts old_voltage_val+8, r14	;save one's of v5
+0001c1 92d0 0099 	sts old_voltage_val+9, r13	;save tenth's of v5
+                 //	sts old_voltage_val+18, r1	;save hundreth's of v5
+                 //	sts old_voltage_val+19, r0	;save thousandth's of v5
+0001c3 c014      	rjmp disp					;jump to display
+                 storing_6:
+0001c4 3046      	cpi r20, $06				;voltage 6?
+0001c5 f429      	brne storing_7				;no
+0001c6 92e0 009a 	sts old_voltage_val+10, r14	;save one's of v6
+0001c8 92d0 009b 	sts old_voltage_val+11, r13	;save tenth's of v6
+                 	//sts old_voltage_val+22, r1	;save hundreth's of v6
+                 	//sts old_voltage_val+23, r0	;save thousandth's of v6
+0001ca c00d      	rjmp disp					;jump to display
+                 storing_7:
+0001cb 3047      	cpi r20, $07				;voltage 7?
+0001cc f429      	brne storing_8				;no
+0001cd 92e0 009c 	sts old_voltage_val+12, r14	;save one's of v7
+0001cf 92d0 009d 	sts old_voltage_val+13, r13	;save tenth's of v7
+                 	//sts old_voltage_val+26, r1	;save hundreth's of v7
+                 	//sts old_voltage_val+27, r0	;save thousandth's of v7
+0001d1 c006      	rjmp disp					;jump to display
+                 storing_8:
+0001d2 3048      	cpi r20, $08				;voltage 8?
+0001d3 f421      	brne disp					;no (ERROR)
+0001d4 92e0 009e 	sts old_voltage_val+14, r14	;save one's of v8
+0001d6 92d0 009f 	sts old_voltage_val+15, r13	;save tenth's of v8
+                 	//sts old_voltage_val+30, r1	;save hundreth's of v8
+                 	//sts old_voltage_val+31, r0	;save thousandth's of v8
+                 disp:
+0001d8 934f      	push r20					;save voltage count
+0001d9 e010      	ldi r17, $00				;high byte of audio output
+0001da ef0f      	ldi r16, $FF				;setup portB 
+0001db bb07      	out DDRB, r16				;as outputs
+                 	//cbi PORTB, 4				;CLR PB4 to enable LCD Connection 
+                 	//ldi ZH, HIGH(line4_message<<1)
+                 	//ldi ZL, LOW(line4_message<<1)
+                 	//rcall load_msg
+0001dc de77      	rcall update_lcd_dog		;output to display
+0001dd 2d03      	mov r16, r3					;1s digit of voltage
+0001de ded1      	rcall send_audio_r17r16
+0001df e00a      	ldi r16, $0A				;'point'
+0001e0 decf      	rcall send_audio_r17r16
+0001e1 2d02      	mov r16, r2					;tenth's digit
+0001e2 decd      	rcall send_audio_r17r16
+0001e3 2d01      	mov r16, r1					;hundredth's digit
+0001e4 decb      	rcall send_audio_r17r16
+0001e5 2d00      	mov r16, r0					;thousand's digit
+0001e6 dec9      	rcall send_audio_r17r16
+                 	
+0001e7 914f      	pop r20						;retrieve voltage count
+0001e8 f04e      	brts end_cap				;if t-flag set from INT, end mode
+                 	//user want to see values?
+0001e9 9100 00a1 	lds r16, see_stored_val		;$FF=yes, $00=no
+0001eb 3f0f      	cpi r16, $FF				;check...
+0001ec f039      	breq see_stored				;YES
+                 	//otherwise, no
+                 	check_cap:
+0001ed 3048      	cpi r20, $08				;check voltage count
+0001ee f009      	breq count_return			;go to reset count
+0001ef cfa1      	rjmp cap					;repeat
+                 	
+                 	//breq count is out of reach so this will enable it to reach
+                 	count_return:
+0001f0 940c 018e 	jmp count
+                 	
+                 	end_cap:
+0001f2 94e8      	clt							;clr t-flag
+0001f3 9508      	ret
+                 
+                 see_stored:
+0001f4 e000      	ldi r16, $00				;disable interrupt request...
+0001f5 bf0b      	out GICR, r16				;at INT0
+0001f6 94f8      	cli							;disable global interrupt to prevent INT0
+0001f7 e0f8      	ldi ZH, HIGH(line11_message<<1)
+0001f8 e0ee      	ldi ZL, LOW(line11_message<<1)
+0001f9 d0cd      	rcall load_msg
+                 stored_1:
+0001fa d0b3      	rcall delay_10mS			;prevent switch bouncing
+0001fb b300      	in r16, PIND				;read PBSW
+0001fc 7f08      	andi r16, $F8				;keep PBSW
+0001fd 3f08      	cpi r16, $F8				;compare to all PBSWs high
+0001fe f7d9      	brne stored_1				;wait for all to be high
+0001ff 90e0 0090 	lds r14, old_voltage_val		;load one's of v1
+000201 90d0 0091 	lds r13, old_voltage_val+1	;load tenth's of v1
+                 
+000203 d136      	rcall unpack_bcd_to_ascii	;convert to ascii
+000204 e001      	ldi r16, $01
+000205 9300 008c 	sts dsp_buff_3+12, r16
+000207 934f      	push r20
+000208 de4b      	rcall update_lcd_dog		;output to display
+000209 914f      	pop r20
+                 	stored_1_loop:
+00020a 9b87      	sbis PIND, 7				;skip if GO not pressed
+00020b cfe1      	rjmp check_cap				;leave see_stored
+00020c 9b83      	sbis PIND, 3				;skip if UP not pressed
+00020d c001      	rjmp stored_2				;enter stored_2 screen 
+00020e cffb      	rjmp stored_1_loop			;wait for user input...
+                 stored_2:
+00020f d09e      	rcall delay_10mS			;prevent switch bouncing
+000210 b300      	in r16, PIND				;read PBSW
+000211 7f08      	andi r16, $F8				;keep PBSW
+000212 3f08      	cpi r16, $F8				;compare to all PBSWs high
+000213 f7d9      	brne stored_2				;wait for all to be high
+000214 90e0 0092 	lds r14, old_voltage_val+2	;load one's of v2
+000216 90d0 0093 	lds r13, old_voltage_val+3	;load tenth's of v2
+                 
+000218 d121      	rcall unpack_bcd_to_ascii	;convert to ascii
+000219 e002      	ldi r16, $02
+00021a 9300 008c 	sts dsp_buff_3+12, r16
+00021c 934f      	push r20
+00021d de36      	rcall update_lcd_dog		;output to display
+00021e 914f      	pop r20
+                 	stored_2_loop:
+00021f 9b87      	sbis PIND, 7				;skip if GO not pressed
+000220 cfcc      	rjmp check_cap				;leave see_stored
+000221 9b83      	sbis PIND, 3				;skip if UP not pressed
+000222 c003      	rjmp stored_3				;enter stored_3 screen 
+000223 9b84      	sbis PIND, 4				;skip if DOWN not pressed
+000224 cfd5      	rjmp stored_1
+000225 cff9      	rjmp stored_2_loop			;wait for user input...
+                 stored_3:
+000226 d087      	rcall delay_10mS			;prevent switch bouncing
+000227 b300      	in r16, PIND				;read PBSW
+000228 7f08      	andi r16, $F8				;keep PBSW
+000229 3f08      	cpi r16, $F8				;compare to all PBSWs high
+00022a f7d9      	brne stored_3				;wait for all to be high
+00022b 90e0 0094 	lds r14, old_voltage_val+4	;load one's of v3
+00022d 90d0 0095 	lds r13, old_voltage_val+5	;load tenth's of v3
+                 
+00022f d10a      	rcall unpack_bcd_to_ascii	;convert to ascii
+000230 e003      	ldi r16, $03
+000231 9300 008c 	sts dsp_buff_3+12, r16
+000233 934f      	push r20
+000234 de1f      	rcall update_lcd_dog		;output to display
+000235 914f      	pop r20
+                 	stored_3_loop:
+000236 9b87      	sbis PIND, 7				;skip if GO not pressed
+000237 cfb5      	rjmp check_cap				;leave see_stored
+000238 9b83      	sbis PIND, 3				;skip if UP not pressed
+000239 c003      	rjmp stored_4				;enter stored_4 screen 
+00023a 9b84      	sbis PIND, 4				;skip if DOWN not pressed
+00023b cfd3      	rjmp stored_2
+00023c cff9      	rjmp stored_3_loop			;wait for user input...
+                 stored_4:
+00023d d070      	rcall delay_10mS			;prevent switch bouncing
+00023e b300      	in r16, PIND				;read PBSW
+00023f 7f08      	andi r16, $F8				;keep PBSW
+000240 3f08      	cpi r16, $F8				;compare to all PBSWs high
+000241 f7d9      	brne stored_4				;wait for all to be high
+000242 90e0 0096 	lds r14, old_voltage_val+6	;load one's of v4
+000244 90d0 0097 	lds r13, old_voltage_val+7	;load tenth's of v4
+                 
+000246 d0f3      	rcall unpack_bcd_to_ascii	;convert to ascii
+000247 e004      	ldi r16, $04
+000248 9300 008c 	sts dsp_buff_3+12, r16
+00024a 934f      	push r20
+00024b de08      	rcall update_lcd_dog		;output to display
+00024c 914f      	pop r20
+                 	stored_4_loop:
+00024d 9b87      	sbis PIND, 7				;skip if GO not pressed
+00024e cf9e      	rjmp check_cap				;leave see_stored
+00024f 9b83      	sbis PIND, 3				;skip if UP not pressed
+000250 c003      	rjmp stored_5				;enter stored_5 screen 
+000251 9b84      	sbis PIND, 4				;skip if DOWN not pressed
+000252 cfd3      	rjmp stored_3
+000253 cff9      	rjmp stored_4_loop			;wait for user input...
+                 stored_5:
+000254 d059      	rcall delay_10mS			;prevent switch bouncing
+000255 b300      	in r16, PIND				;read PBSW
+000256 7f08      	andi r16, $F8				;keep PBSW
+000257 3f08      	cpi r16, $F8				;compare to all PBSWs high
+000258 f7d9      	brne stored_5				;wait for all to be high
+000259 90e0 0098 	lds r14, old_voltage_val+8	;load one's of v5
+00025b 90d0 0099 	lds r13, old_voltage_val+9	;load tenth's of v5
+                 
+00025d d0dc      	rcall unpack_bcd_to_ascii	;convert to ascii
+00025e e005      	ldi r16, $05
+00025f 9300 008c 	sts dsp_buff_3+12, r16
+000261 934f      	push r20
+000262 ddf1      	rcall update_lcd_dog		;output to display
+000263 914f      	pop r20
+                 	stored_5_loop:
+000264 9b87      	sbis PIND, 7				;skip if GO not pressed
+000265 cf87      	rjmp check_cap				;leave see_stored
+000266 9b83      	sbis PIND, 3				;skip if UP not pressed
+000267 c003      	rjmp stored_6				;enter stored_6 screen 
+000268 9b84      	sbis PIND, 4				;skip if DOWN not pressed
+000269 cfd3      	rjmp stored_4
+00026a cff9      	rjmp stored_5_loop			;wait for user input...
+                 stored_6:
+00026b d042      	rcall delay_10mS			;prevent switch bouncing
+00026c b300      	in r16, PIND				;read PBSW
+00026d 7f08      	andi r16, $F8				;keep PBSW
+00026e 3f08      	cpi r16, $F8				;compare to all PBSWs high
+00026f f7d9      	brne stored_6				;wait for all to be high
+000270 90e0 009a 	lds r14, old_voltage_val+10	;load one's of v6
+000272 90d0 009b 	lds r13, old_voltage_val+11	;load tenth's of v6
+                 
+000274 d0c5      	rcall unpack_bcd_to_ascii	;convert to ascii
+000275 e006      	ldi r16, $06
+000276 9300 008c 	sts dsp_buff_3+12, r16
+000278 934f      	push r20
+000279 ddda      	rcall update_lcd_dog		;output to display
+00027a 914f      	pop r20
+                 	stored_6_loop:
+00027b 9b87      	sbis PIND, 7				;skip if GO not pressed
+00027c cf70      	rjmp check_cap				;leave see_stored
+00027d 9b83      	sbis PIND, 3				;skip if UP not pressed
+00027e c003      	rjmp stored_7				;enter stored_7 screen 
+00027f 9b84      	sbis PIND, 4				;skip if DOWN not pressed
+000280 cfd3      	rjmp stored_5
+000281 cff9      	rjmp stored_6_loop			;wait for user input...
+                 stored_7:
+000282 d02b      	rcall delay_10mS			;prevent switch bouncing
+000283 b300      	in r16, PIND				;read PBSW
+000284 7f08      	andi r16, $F8				;keep PBSW
+000285 3f08      	cpi r16, $F8				;compare to all PBSWs high
+000286 f7d9      	brne stored_7				;wait for all to be high
+000287 90e0 009c 	lds r14, old_voltage_val+12	;load one's of v7
+000289 90d0 009d 	lds r13, old_voltage_val+13	;load tenth's of v7
+                 
+00028b d0ae      	rcall unpack_bcd_to_ascii	;convert to ascii
+00028c e007      	ldi r16, $07
+00028d 9300 008c 	sts dsp_buff_3+12, r16
+00028f 934f      	push r20
+000290 ddc3      	rcall update_lcd_dog		;output to display
+000291 914f      	pop r20
+                 	stored_7_loop:
+000292 9b87      	sbis PIND, 7				;skip if GO not pressed
+000293 cf59      	rjmp check_cap				;leave see_stored
+000294 9b83      	sbis PIND, 3				;skip if UP not pressed
+000295 c003      	rjmp stored_8				;enter stored_8 screen 
+000296 9b84      	sbis PIND, 4				;skip if DOWN not pressed
+000297 cfd3      	rjmp stored_6
+000298 cff9      	rjmp stored_7_loop			;wait for user input...
+                 stored_8:
+000299 d014      	rcall delay_10mS			;prevent switch bouncing
+00029a b300      	in r16, PIND				;read PBSW
+00029b 7f08      	andi r16, $F8				;keep PBSW
+00029c 3f08      	cpi r16, $F8				;compare to all PBSWs high
+00029d f7d9      	brne stored_8				;wait for all to be high
+00029e 90e0 009e 	lds r14, old_voltage_val+14	;load one's of v8
+0002a0 90d0 009f 	lds r13, old_voltage_val+15	;load tenth's of v8
+                 
+0002a2 d097      	rcall unpack_bcd_to_ascii	;convert to ascii
+0002a3 e008      	ldi r16, $08
+0002a4 9300 008c 	sts dsp_buff_3+12, r16
+0002a6 934f      	push r20
+0002a7 ddac      	rcall update_lcd_dog		;output to display
+0002a8 914f      	pop r20
+                 	stored_8_loop:
+0002a9 9b87      	sbis PIND, 7				;skip if GO not pressed
+0002aa cf42      	rjmp check_cap				;leave see_stored
+0002ab 9b84      	sbis PIND, 4				;skip if DOWN not pressed
+0002ac cfd5      	rjmp stored_7
+0002ad cffb      	rjmp stored_8_loop			;wait for user input...
+                 
+                 
+                 
+                 	
+                 ;*******************************************************
+                 ; delay_10mS - Nested loop delay for creating
+                 ;              a debounce delay of 10 mS
+                 ;
+                 ; inputs = none
+                 ; outputs = none
+                 ; alters r17:r16 (inner and outer loop counts)
+                 ;******************************************************
+                 
+                 ; Debouncing delay equate counts
+                 .equ outer_cnt = 0xf1  ; outer loop counter load value
+                 .equ inner_cnt = 0x0d  ; inner loop counter load value
+                 
+                 delay_10mS:
+0002ae ef01          ldi  r16,outer_cnt   ;init outer loop counter value
+                 dloop1:
+0002af e01d      	ldi  r17,inner_cnt   ;init inner loop counter value
+                 dloop2:
+0002b0 951a      	dec  r17             ; decr inner count and if
+0002b1 f7f1      	brne dloop2          ; 0, fall thru.
+0002b2 950a          dec r16              ; decr outer count, and if
+0002b3 f7d9      	brne dloop1          ; 0, fall thru.
+0002b4 9508          ret                  ; ************** 
+                 
+                 
+                 
+                 ;********************************************************************
+                 ;NAME:			default_buff
+                 ;FUNCTION:		initializes all three lines in buff
+                 ;ASSUMES:		BYTE has been allocated in SRAM
+                 ;RETURNS:		nothing
+                 ;MODIFIES:		SRAM
+                 ;CALLS:			load_msg
+                 ;CALLED BY:		reset
+                 ;********************************************************************
+                 
+                 default_buff:
+0002b5 e0f7      		ldi ZH, HIGH(line1_message<<1)
+0002b6 e5ea      		ldi ZL, LOW(line1_message<<1)
+0002b7 d00f      		rcall load_msg
+0002b8 e0f7      		ldi ZH, HIGH(line2_message<<1)
+0002b9 e6ec      		ldi ZL, LOW(line2_message<<1)
+0002ba d00c      		rcall load_msg
+0002bb e0f7      		ldi ZH, HIGH(line4_message<<1)
+0002bc e9e0      		ldi ZL, LOW(line4_message<<1)
+0002bd d009      		rcall load_msg
+0002be 9508      		ret		
+                 
+                 ;********************************************************************
+                 ;NAME:      clr_dsp_buffs
+                 ;FUNCTION:  Initializes dsp_buffers 1, 2, and 3 with blanks (0x20)
+                 ;ASSUMES:   Three CONTIGUOUS 16-byte dram based buffers named
+                 ;           dsp_buff_1, dsp_buff_2, dsp_buff_3.
+                 ;RETURNS:   nothing.
+                 ;MODIFIES:  r25,r26, Z-ptr
+                 ;CALLS:     none
+                 ;CALLED BY: main application and diagnostics
+                 ;********************************************************************
+                 clr_dsp_buffs:
+0002bf e390           ldi R25, 48               ; load total length of both buffer.
+0002c0 e2a0           ldi R26, ' '              ; load blank/space into R26.
+0002c1 e0f0           ldi ZH, high (dsp_buff_1) ; Load ZH and ZL as a pointer to 1st
+0002c2 e6e0           ldi ZL, low (dsp_buff_1)  ; byte of buffer for line 1.
+                    
+                     ;set DDRAM address to 1st position of first line.
+                 store_bytes:
+0002c3 93a1           st  Z+, R26       ; store ' ' into 1st/next buffer byte and
+                                        ; auto inc ptr to next location.
+0002c4 959a           dec  R25          ; 
+0002c5 f7e9           brne store_bytes  ; cont until r25=0, all bytes written.
+0002c6 9508           ret
+                 
+                 ;*******************************************************************
+                 ;NAME:      load_msg
+                 ;FUNCTION:  Loads a predefined string msg into a specified diplay
+                 ;           buffer.
+                 ;ASSUMES:   Z = offset of message to be loaded. Msg format is 
+                 ;           defined below.
+                 ;RETURNS:   nothing.
+                 ;MODIFIES:  r16, Y, Z
+                 ;CALLS:     nothing
+                 ;CALLED BY:  
+                 ;********************************************************************
+                 ; Message structure:
+                 ;   label:  .db <buff num>, <text string/message>, <end of string>
+                 ;
+                 ; Message examples (also see Messages at the end of this file/module):
+                 ;   msg_1: .db 1,"First Message ", 0   ; loads msg into buff 1, eom=0
+                 ;   msg_2: .db 1,"Another message ", 0 ; loads msg into buff 1, eom=0
+                 ;
+                 ; Notes: 
+                 ;   a) The 1st number indicates which buffer to load (either 1, 2, or 3).
+                 ;   b) The last number (zero) is an 'end of string' indicator.
+                 ;   c) Y = ptr to disp_buffer
+                 ;      Z = ptr to message (passed to subroutine)
+                 ;********************************************************************
+                 load_msg:
+0002c7 e0d0           ldi YH, high (dsp_buff_1) ; Load YH and YL as a pointer to 1st
+0002c8 e6c0           ldi YL, low (dsp_buff_1)  ; byte of dsp_buff_1 (Note - assuming 
+                                                ; (dsp_buff_1 for now).
+0002c9 9105           lpm R16, Z+               ; get dsply buff number (1st byte of msg).
+0002ca 3001           cpi r16, 1                ; if equal to '1', ptr already setup.
+0002cb f021           breq get_msg_byte         ; jump and start message load.
+0002cc 9660           adiw YH:YL, 16            ; else set ptr to dsp buff 2.
+0002cd 3002           cpi r16, 2                ; if equal to '2', ptr now setup.
+0002ce f009           breq get_msg_byte         ; jump and start message load.
+0002cf 9660           adiw YH:YL, 16            ; else set ptr to dsp buff 2.
+                         
+                 get_msg_byte:
+0002d0 9105           lpm R16, Z+               ; get next byte of msg and see if '0'.        
+0002d1 3000           cpi R16, 0                ; if equal to '0', end of message reached.
+0002d2 f011           breq msg_loaded           ; jump and stop message loading operation.
+0002d3 9309           st Y+, R16                ; else, store next byte of msg in buffer.
+0002d4 cffb           rjmp get_msg_byte         ; jump back and continue...
+                 msg_loaded:
+0002d5 9508           ret
+                 
+                 ;********************************************************************
+                 ;NAME:      read_voltge_run
+                 ;FUNCTION:  reads a 12-bit voltage value from MAX144
+                 ;			specifically for the run_mode
+                 ;ASSUMES:   nothing
+                 ;RETURNS:   R19:R18
+                 ;MODIFIES:  R19,R18,R16
+                 ;CALLS:     nothing
+                 ;CALLED BY: main application 
+                 ;********************************************************************
+                 read_voltage_run: 
+0002d6 e801      	ldi r16, (1<<7)|(1<<0)
+0002d7 bb07      	out DDRB, r16
+0002d8 e502      	ldi r16, (1<<SPE)|(1<<MSTR)|(1<<SPR1)	;enable SPI, Master, and  fck/64
+0002d9 b90d      	out SPCR, r16
+                 
+0002da 98c0      	cbi PORTB, 0				;CLR PB0 to turn on CS for MAX144
+0002db ef0f      	ldi r16, $FF				;garbage value 
+0002dc b90f      	out SPDR, r16				;load garbage value to start transmission
+                 
+                 high_byte_run:
+0002dd 9b77      	sbis SPSR, SPIF				;poll until first byte is read
+0002de cffe      	rjmp high_byte_run				;
+0002df b13f      	in r19, SPDR				;load high byte
+0002e0 703f      	andi r19, $0F				;mask bit
+                 
+                 start_run:
+0002e1 ef0f      	ldi r16, $FF				;garbage value
+0002e2 b90f      	out SPDR, r16				;start second transmission
+                 	
+                 low_byte_run:
+0002e3 9b77      	sbis SPSR,SPIF				;poll until low byte is read
+0002e4 cffe      	rjmp low_byte_run				;
+0002e5 b12f      	in r18, SPDR				;load low_byte
+0002e6 9ac0      	sbi PORTB, 0				;turn off MAX144
+0002e7 9508      	ret	 
+                 
+                 
+                 
+                 
+                 ;********************************************************************
+                 ;NAME:      read_voltge
+                 ;FUNCTION:  reads a 12-bit voltage value from MAX144
+                 ;			specifically for capture_mode
+                 ;ASSUMES:   nothing
+                 ;RETURNS:   R19:R18
+                 ;MODIFIES:  R19,R18,R16
+                 ;CALLS:     nothing
+                 ;CALLED BY: main application 
+                 ;********************************************************************
+                 read_voltage: 
+0002e8 e801      	ldi r16, (1<<7)|(1<<0)
+0002e9 bb07      	out DDRB, r16 
+0002ea e502      	ldi r16, (1<<SPE)|(1<<MSTR)|(1<<SPR1)	;enable SPI, Master, and  fck/64
+0002eb b90d      	out SPCR, r16
+                 
+                 	//cbi PORTB, 0				;CLR PB0 to turn on CS for MAX144
+                 
+                 start_high:
+0002ec 98c0      cbi PORTB, 0				;CLR PB0 to turn on CS for MAX144
+                 
+0002ed ef0f      	ldi r16, $FF				;garbage value 
+0002ee b90f      	out SPDR, r16				;load garbage value to start transmission
+                 
+                 high_byte:
+0002ef 9b77      	sbis SPSR, SPIF				;poll until first byte is read
+0002f0 cffe      	rjmp high_byte				;
+0002f1 b13f      	in r19, SPDR				;load high byte
+0002f2 703f      	andi r19, $0F				;mask bit
+                 
+                 start_low:
+0002f3 ef0f      	ldi r16, $FF				;garbage value
+0002f4 b90f      	out SPDR, r16				;start second transmission
+                 	
+                 low_byte:
+0002f5 9b77      	sbis SPSR,SPIF				;poll until low byte is read
+0002f6 cffe      	rjmp low_byte				;
+0002f7 b12f      	in r18, SPDR				;load low_byte
+0002f8 9ac0      	sbi PORTB, 0				;turn off MAX144
+                 
+                 compare_high:
+0002f9 3030      	cpi r19, $00				;compare to 0
+0002fa f789      	brne start_high				;if not then system cannot capture
+                 
+                 compare_low:
+0002fb 3020      	cpi r18, $00				;compare to 0
+0002fc f779      	brne start_high				;if not then system cannot capture
+                 
+                 /***********************Capture Mode******************************/
+0002fd e0f7      ldi ZH, HIGH(line3_message<<1)
+0002fe e7ee      ldi ZL, LOW(line3_message<<1)
+0002ff dfc7      rcall load_msg
+000300 dd53      rcall update_lcd_dog		;output to display
+000301 9ac0      sbi PORTB, 0
+000302 d054      rcall tone_5V		//ready to capture
+                 capture:
+000303 dd0d      rcall delay_40ms
+000304 dd0c      rcall delay_40ms
+000305 dd0b      rcall delay_40ms
+000306 dd0a      rcall delay_40ms
+                 
+000307 98c0      cbi PORTB, 0 
+000308 ef0f      	ldi r16, $FF
+000309 b90f      	out SPDR, r16
+                 
+                 high_byte1:
+00030a 9b77      	sbis SPSR, SPIF
+00030b cffe      	rjmp high_byte1
+00030c b13f      	in r19, SPDR
+00030d 703f      	andi r19, $0F
+                 
+00030e ef0f      	ldi r16, $FF
+00030f b90f      	out SPDR, r16
+                 
+                 low_byte1:
+000310 9b77      	sbis SPSR, SPIF
+000311 cffe      	rjmp low_byte1
+000312 b12f      	in r18, SPDR
+000313 9ac0      	sbi PORTB, 0				;turn off MAX144
+                 compare_high1:
+000314 3030      	cpi r19, $00
+000315 f411      	brne end
+                 
+                 compare_low1:
+000316 3624      	cpi r18, 100
+000317 f358      	brlo capture
+                 
+                 end:
+                 	//sbi PORTB, 0				;turn off MAX144
+000318 ef0f      	ldi r16, $FF
+000319 bb07      	out DDRB, r16
+00031a e0f7      	ldi ZH, HIGH(line3_message<<1)
+00031b e7ee      	ldi ZL, LOW(line3_message<<1)
+00031c dfaa      	rcall load_msg
+00031d d039      	rcall tone_5V				;captured
+00031e dd35      	rcall update_lcd_dog
+00031f d04a      	rcall delay
+000320 9508      	ret
+                 
+                 ;***************************************************************************
+                 ;*
+                 ;* "bin2BCD16" - 16-bit Binary to BCD conversion
+                 ;*
+                 ;* This subroutine converts a 16-bit number (fbinH:fbinL) to a 5-digit
+                 ;* packed BCD number represented by 3 bytes (tBCD2:tBCD1:tBCD0).
+                 ;* MSD of the 5-digit number is placed in the lowermost nibble of tBCD2.
+                 ;*
+                 ;* Number of words	:25
+                 ;* Number of cycles	:751/768 (Min/Max)
+                 ;* Low registers used	:3 (tBCD0,tBCD1,tBCD2)
+                 ;* High registers used  :4(fbinL,fbinH,cnt16a,tmp16a)	
+                 ;* Pointers used	:Z
+                 ;*
+                 ;***************************************************************************
+                 
+                 ;***** Subroutine Register Variables
+                 
+                 .equ	AtBCD0	=13			;address of tBCD0
+                 .equ	AtBCD2	=15			;address of tBCD1
+                 
+                 .def	tBCD0	=r13		;BCD value digits 1 and 0
+                 .def	tBCD1	=r14		;BCD value digits 3 and 2
+                 .def	tBCD2	=r15		;BCD value digit 4
+                 .def	fbinL	=r18		;binary value Low byte
+                 .def	fbinH	=r19		;binary value High byte
+                 .def	cnt16a	=r16		;loop counter
+                 .def	tmp16a	=r17		;temporary value
+                 
+                 ;***** Code
+                 
+                 bin2BCD16:
+000321 e100      	ldi	cnt16a,16	;Init loop counter	
+000322 24ff      	clr	tBCD2		;clear result (3 bytes)
+000323 24ee      	clr	tBCD1		
+000324 24dd      	clr	tBCD0		
+000325 27ff      	clr	ZH		;clear ZH (not needed for AT90Sxx0x)
+000326 0f22      bBCDx_1:lsl	fbinL		;shift input value
+000327 1f33      	rol	fbinH		;through all bytes
+000328 1cdd      	rol	tBCD0		;
+000329 1cee      	rol	tBCD1
+00032a 1cff      	rol	tBCD2
+00032b 950a      	dec	cnt16a		;decrement loop counter
+00032c f409      	brne	bBCDx_2		;if counter not zero
+00032d 9508      	ret			;   return
+                 
+00032e e1e0      bBCDx_2:ldi	r30,AtBCD2+1	;Z points to result MSB + 1
+                 bBCDx_3:
+00032f 9112      	ld	tmp16a,-Z	;get (Z) with pre-decrement
+000330 5f1d      	subi	tmp16a,-$03	;add 0x03
+000331 fd13      	sbrc	tmp16a,3	;if bit 3 not clear
+000332 8310      	st	Z,tmp16a	;	store back
+000333 8110      	ld	tmp16a,Z	;get (Z)
+000334 5d10      	subi	tmp16a,-$30	;add 0x30
+000335 fd17      	sbrc	tmp16a,7	;if bit 7 not clear
+000336 8310      	st	Z,tmp16a	;	store back
+000337 30ed      	cpi	ZL,AtBCD0	;done all three?
+000338 f7b1      	brne	bBCDx_3		;loop again if not
+000339 cfec      	rjmp	bBCDx_1		
+                 
+                 ;**************************************************************************
+                 ;NAME:		unpack_bcd_to_ascii
+                 ;FUNCTION:	unpacks bcd numbers and converts to ascii
+                 ;ASSUMES:	r14:r13 are bcd values
+                 ;RETURNS:	values stored in buffers
+                 ;MODIFIES:	SRAM
+                 ;CALLS:		ASCII_table
+                 ;CALLED BY:	MAIN
+                 ;**************************************************************************
+                 
+                 unpack_bcd_to_ascii:
+00033a e00f      		ldi r16, $0F				;load and
+00033b 2ea0      		mov r10, r16				;save masking value
+00033c 2c3e      		mov r3, r14					;copy BCD2&3
+00033d 9432      		swap r3						;SWAP BCD2&3
+00033e 203a      		and r3, r10					;save BCD3
+00033f 2db3      		mov r27, r3					;copy for table
+000340 d060      		rcall ASCII_table			;jmp to table lookup
+000341 9360 0063 		sts dsp_buff_1+3, r22		;store BCD3
+000343 2c2e      		mov r2, r14					;copy BCD2&3
+000344 202a      		and r2, r10					;keep BCD2
+000345 2db2      		mov r27, r2					;copy for table
+000346 d05a      		rcall ASCII_table			;jmp to table lookup
+000347 9360 0065 		sts dsp_buff_1+5, r22		;store BCD2
+000349 2c1d      		mov r1, r13					;copy BCD1&0
+00034a 9412      		swap r1						;swap BCD1&0
+00034b 201a      		and r1, r10					;save BCD1
+00034c 2db1      		mov r27, r1					;copy for table
+00034d d053      		rcall ASCII_table			;jmp to table lookup
+00034e 9360 0066 		sts dsp_buff_1+6, r22		;store BCD1
+000350 2c0d      		mov r0, r13					;copy BCD1&0
+000351 200a      		and r0, r10					;save BCD0
+000352 2db0      		mov r27, r0					;copy for table
+000353 d04d      		rcall ASCII_table			;jmp to table lookup
+000354 9360 0067 		sts dsp_buff_1+7, r22		;store BCD0
+000356 9508      		ret							;return
+                 
+                 ;*********************************************************************
+                 ;NAME:      tone_5V
+                 ;FUNCTION:  causes tone/beep on piezo element
+                 ;ASSUMES:   nothing
+                 ;RETURNS:   nothing
+                 ;MODIFIES:  SREG
+                 ;CALLS:     v_delay
+                 ;*********************************************************************
+                 tone_5V:
+000357 937f            push  r23   ; save registers
+000358 936f            push  r22
+000359 930f            push  r16
+                 
+                    ;***************************************************
+                    ;SOUNDER TONE/DURATION - ADJUSTABLE VALUE
+                    ;(May be adjusted by user, as needed)
+00035a ef0f          ldi   r16, 255    ; CALIBRATION PARAMETER
+                    ;SOUNDER TONE/DURATION ADJUSTMENT
+                    ;***************************************************
+00035b e16e            ldi  r22, 30  ; inner delay count.
+00035c e071            ldi  r23, 1     ; outer delay count.
+                 tone_loop:
+00035d 936f            push r22        ; save counts in r22 and r23
+00035e 937f            push r23        ;
+00035f 98a8            cbi  PortC,0    ; turn on sounder
+000360 dcaa            rcall v_delay   ; delay
+000361 9aa8            sbi  PortC,0    ; turn off sounder
+000362 917f            pop r23         ; restore delay count
+000363 916f            pop r22         ; down registers
+000364 950a            dec r16         ; adjust loop ctr, and if not
+000365 f7b9            brne tone_loop  ; zero, then branch and repeat.
+                 
+000366 910f            pop  r16   ; restore registers
+000367 916f            pop  r22
+000368 917f            pop  r23
+000369 9508            ret
+                 
+                 
+                 ;**************************************************************************
+                 ;NAME:		delay
+                 ;FUNCTION:	creates a variable delay
+                 ;ASSUMES:	nothing
+                 ;RETURNS:	nothing
+                 ;MODIFIES:	r16, r17
+                 ;CALLS:		nothing
+                 ;CALLED BY:	adc_read
+                 ;**************************************************************************
+                 delay:
+00036a ef0f      		ldi r16, $FF		;outer 10ms delay loop
+                 delay1:
+00036b ef1f      		ldi r17, $FF		;inner loop counter
+                 here:
+00036c 951a      		dec r17				;decrement the inner loop
+00036d 0000      		nop					;delay
+00036e f7e9      		brne here			;if r17 isnt zero, inner loop repeat
+00036f 950a      		dec r16				;decrement the outer loop
+000370 0000      		nop					;delay
+000371 f7c9      		brne delay1		;if r16 isnt zero, outer loop repeat
+000372 0000      		nop					;delay
+000373 0000      		nop					;delay
+000374 9508      		ret
+                 
+                 ;**************************************************************************
+                 ;toggle_isr: Will turn on the T-flag when any PBSW on PORT-D is pressed
+                 ;uses delay_10ms for switch debouncing
+                 ;registers used- r16, r17, r18, r19
+                 ;
+                 ;modifies-tflag
+                 ;**************************************************************************
+                 
+                 toggle_isr:
+000375 933f      	push r19
+000376 932f      	push r18
+000377 931f      	push r17
+000378 930f      	push r16
+000379 b70f      	in r16, SREG
+00037a 930f      	push r16			;save all registers to be used
+00037b b320      	in r18, PIND		;read which switch was pressed
+00037c 7f28      	andi r18, $F8		;keep only PBSWs
+00037d 2f32      	mov r19, r18		;save
+                 	;*************************************************
+00037e df2f      	rcall delay_10ms	;delay to test switch bouncing
+                 	;*************************************************
+00037f b320      	in r18, PIND		;read again
+000380 7f28      	andi r18, $F8
+000381 1723      	cp r18, r19			;switches same?
+000382 f461      	brne bounce			;no, bounce occured
+                 	//test UP
+000383 9100 00a0 	lds r16, cap_store_val	;check if cap/store enabled
+000385 3f0f      	cpi r16, $FF		;
+000386 f421      	brne no_UP			;no
+000387 9520      	com r18				;make 1's=0's, vice versa
+000388 7028      	andi r18, $08		;isolate PD3(UP)
+000389 3028      	cpi r18, $08		;if UP was pressed(0=1)
+00038a f039      	breq set_store		;user doesn't want to leave, wants to 
+                 						;see stored voltages
+                 	no_UP:
+00038b 910f      	pop r16
+00038c bf0f      	out SREG, r16
+00038d 9468      	set					;turn on t-flag
+00038e c008      	rjmp end_isr
+                 	bounce:
+00038f 910f      	pop r16
+000390 bf0f      	out SREG, r16
+000391 c005      	rjmp end_isr
+                 	set_store:
+000392 ef0f      	ldi r16, $FF		;load and store...
+000393 9300 00a1 	sts see_stored_val, r16	;to see stored values
+000395 910f      	pop r16
+000396 bf0f      	out SREG, r16
+                 	end_isr:
+                 	//make sure all switches high before leaving
+000397 df16      	rcall delay_10mS			;prevent switch bouncing
+000398 b300      	in r16, PIND				;read PBSW
+000399 7f08      	andi r16, $F8				;keep PBSW
+00039a 3f08      	cpi r16, $F8				;compare to all PBSWs high
+00039b f7d9      	brne end_isr				;wait for all to be high
+                 	//******************************************
+00039c 910f      	pop r16
+00039d 911f      	pop r17
+00039e 912f      	pop r18
+00039f 913f      	pop r19
+0003a0 9518      	reti
+                 
+                 
+                 ;**************************************************************************
+                 ;ASCII_table- self-contained subroutine that takes a HEX value
+                 ;and points to its associated ASCII value
+                 ;modification of BCD lookup table
+                 ;
+                 ;inputs: Z-pointer
+                 ;			-ZH is high Z
+                 ;			-ZL is low Z
+                 ;		 r16 is a place holder for adc
+                 ;		 r27 is the HEX value to be converted
+                 ;outputs: result of Z point are loaded into r22
+                 ;		  returned to be stored in SRAM
+                 ;***************************************************************************
+                 
+                 ASCII_table:
+0003a1 e0f7      		ldi ZH, high (table * 2)	;set Z to point to start of table
+0003a2 e5e0      		ldi ZL, low (table * 2)		;
+0003a3 e000      		ldi r16, $00				;clear for add w/ carry
+0003a4 0feb      		add ZL, r27					;add low byte
+0003a5 1ff0      		adc ZH, r16					;add in the CY
+0003a6 9164      		lpm r22, Z					;load bit pattern from table into r22
+0003a7 9508      		ret
+                 
+0003a8 3130
+0003a9 3332
+0003aa 3534
+0003ab 3736
+0003ac 3938      table: .db $30,$31,$32,$33,$34,$35,$36,$37,$38,$39
+                 		   ;0,  1,  2,  3,  4,  5,  6,  7,  8,	9
+                 
+                 
+                 
+                 /*********************************************************************/
+0003ad 2001
+0003ae 2020
+0003af 2e20
+0003b0 2020
+0003b1 2020
+0003b2 4456
+0003b3 2043
+0003b4 2020
+0003b5 0020      line1_message: .db 1, "    .    VDC    ", 0	 ;string 1
+0003b6 2d02
+0003b7 2d2d
+0003b8 2d2d
+0003b9 2d2d
+0003ba 2d2d
+0003bb 2d2d
+0003bc 2d2d
+0003bd 2d2d
+0003be 002d      line2_message: .db 2, "----------------", 0	 ;string 2
+0003bf 4303
+0003c0 5041
+0003c1 5554
+0003c2 4552
+0003c3 2044
+0003c4 2020
+0003c5 2020
+0003c6 2020
+0003c7 0020      line3_message: .db 3, "CAPTURED        ", 0  ;string 3
+0003c8 5203
+0003c9 4e55
+0003ca 494e
+0003cb 474e
+0003cc 2020
+0003cd 2020
+0003ce 2020
+0003cf 2020
+0003d0 0020      line4_message: .db 3, "RUNNING         ", 0  ;string 4
+0003d1 2001
+0003d2 2020
+0003d3 6553
+0003d4 656c
+0003d5 7463
+0003d6 4d20
+0003d7 646f
+0003d8 2065
+0003d9 0020      line5_message: .db 1, "   Select Mode  ", 0
+0003da 2003
+0003db 4320
+0003dc 7061
+0003dd 7574
+0003de 6572
+0003df 4d20
+0003e0 646f
+0003e1 3f65
+0003e2 0020      line6_message: .db 3, "  Capture Mode? ", 0
+0003e3 2003
+0003e4 2020
+0003e5 5220
+0003e6 6e75
+0003e7 4d20
+0003e8 646f
+0003e9 3f65
+0003ea 2020
+0003eb 0020      line7_message: .db 3, "    Run Mode?   ", 0
+0003ec 2003
+0003ed 2020
+0003ee 4820
+0003ef 6c6f
+0003f0 2064
+0003f1 6f4d
+0003f2 6564
+0003f3 203f
+0003f4 0020      line8_message: .db 3, "    Hold Mode?  ", 0
+0003f5 4803
+0003f6 4c4f
+0003f7 4944
+0003f8 474e
+0003f9 2020
+0003fa 2020
+0003fb 2020
+0003fc 2020
+0003fd 0020      line9_message: .db 3, "HOLDING         ", 0	
+0003fe 4303
+0003ff 7061
+000400 532f
+000401 6f74
+000402 6572
+000403 4d20
+000404 646f
+000405 3f65
+000406 0020      line10_message: .db 3, "Cap/Store Mode? ", 0
+000407 2003
+000408 2020
+000409 5620
+00040a 6c6f
+00040b 6174
+00040c 6567
+00040d 2020
+00040e 2020
+00040f 0020      line11_message: .db 3, "    Voltage     ", 0
+                 
+                 
+                 
+
+
+RESOURCE USE INFORMATION
+------------------------
+
+Notice:
+The register and instruction counts are symbol table hit counts,
+and hence implicitly used resources are not counted, eg, the
+'lpm' instruction without operands implicitly uses r0 and z,
+none of which are counted.
+
+x,y,z are separate entities in the symbol table and are
+counted separately from r26..r31 here.
+
+.dseg memory usage only counts static data declared with .byte
+
+"ATmega16A" register use summary:
+r0 :   5 r1 :   6 r2 :   5 r3 :   6 r4 :   0 r5 :   0 r6 :   0 r7 :   0 
+r8 :   0 r9 :   0 r10:   5 r11:   0 r12:   0 r13:  20 r14:  20 r15:   2 
+r16: 239 r17:  29 r18:  19 r19:  13 r20:  39 r21:   0 r22:  12 r23:   7 
+r24:   8 r25:  10 r26:   2 r27:   5 r28:   3 r29:   3 r30:  21 r31:  20 
+x  :   0 y  :   1 z  :  11 
+Registers used: 25 out of 35 (71.4%)
+
+"ATmega16A" instruction use summary:
+.lds  :   0 .sts  :   0 adc   :   1 add   :   1 adiw  :   2 and   :   4 
+andi  :  23 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   0 brcs  :   1 break :   0 breq  :   6 brge  :   0 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   1 brlt  :   0 brmi  :   0 
+brne  :  54 brpl  :   0 brsh  :   0 brtc  :   4 brts  :   4 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :  11 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   2 cln   :   0 clr   :   4 cls   :   0 
+clt   :   8 clv   :   0 clz   :   0 com   :   1 cp    :   1 cpc   :   0 
+cpi   :  37 cpse  :   0 dec   :  23 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :  36 inc   :   1 jmp   :   1 
+ld    :   5 ldd   :   0 ldi   : 130 lds   :  18 lpm   :   4 lsl   :   1 
+lsr   :   0 mov   :  18 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   8 or    :   0 ori   :   0 out   :  41 pop   :  37 
+push  :  35 rcall : 151 ret   :  30 reti  :   1 rjmp  :  68 rol   :   6 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :  16 sbic  :   2 sbis  :  38 
+sbiw  :   0 sbr   :   0 sbrc  :   2 sbrs  :   2 sec   :   0 seh   :   0 
+sei   :   4 sen   :   0 ser   :   0 ses   :   0 set   :   2 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   4 std   :   0 sts   :  32 
+sub   :   0 subi  :   2 swap  :   2 tst   :   0 wdr   :   0 
+Instructions used: 48 out of 113 (42.5%)
+
+"ATmega16A" memory use summary [bytes]:
+Segment   Begin    End      Code   Data   Used    Size   Use%
+---------------------------------------------------------------
+[.cseg] 0x000000 0x000820   1870    208   2078   16384  12.7%
+[.dseg] 0x000060 0x0000a2      0     66     66    1024   6.4%
+[.eseg] 0x000000 0x000000      0      0      0     512   0.0%
+
+Assembly complete, 0 errors, 0 warnings

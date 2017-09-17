@@ -1,0 +1,100 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.1.52</VERSION>
+ <DEVICE>"ATmega16A"</DEVICE>
+ <WORKING_DIR>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16Adef.inc</FILE>
+  <FILE>C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16adef.inc</FILE>
+  <FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\Debug/vm1c.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>vm1c.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>vm1c.map</FILE>
+  <FILE>vm1c.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <RESET><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>9</LINE></RESET>
+  <dsp_buff_1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>54</LINE></dsp_buff_1>
+  <dsp_buff_2><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>55</LINE></dsp_buff_2>
+  <dsp_buff_3><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>56</LINE></dsp_buff_3>
+  <delay_30uS><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>75</LINE></delay_30uS>
+  <d30_loop><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>79</LINE></d30_loop>
+  <v_delay><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>106</LINE></v_delay>
+  <delay_40mS><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>125</LINE></delay_40mS>
+  <init_spi_lcd><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>141</LINE></init_spi_lcd>
+  <lcd_spi_transmit_CMD><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>164</LINE></lcd_spi_transmit_CMD>
+  <wait_transmit><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>175</LINE></wait_transmit>
+  <lcd_spi_transmit_DATA><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>196</LINE></lcd_spi_transmit_DATA>
+  <wait_transmit1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>207</LINE></wait_transmit1>
+  <init_lcd_dog><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>227</LINE></init_lcd_dog>
+  <start_dly_40ms><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>231</LINE></start_dly_40ms>
+  <func_set1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>235</LINE></func_set1>
+  <func_set2><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>241</LINE></func_set2>
+  <bias_set><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>247</LINE></bias_set>
+  <power_ctrl><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>255</LINE></power_ctrl>
+  <follower_ctrl><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>261</LINE></follower_ctrl>
+  <contrast_set><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>267</LINE></contrast_set>
+  <display_on><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>272</LINE></display_on>
+  <clr_display><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>278</LINE></clr_display>
+  <entry_mode><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>286</LINE></entry_mode>
+  <update_lcd_dog><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>305</LINE></update_lcd_dog>
+  <wr_line1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>312</LINE></wr_line1>
+  <snd_ddram_addr><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>315</LINE></snd_ddram_addr>
+  <snd_buff_1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>319</LINE></snd_buff_1>
+  <init_for_buff_2><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>328</LINE></init_for_buff_2>
+  <wr_line2><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>331</LINE></wr_line2>
+  <snd_ddram_addr2><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>334</LINE></snd_ddram_addr2>
+  <snd_buff_2><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>338</LINE></snd_buff_2>
+  <init_for_buff_3><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>347</LINE></init_for_buff_3>
+  <wr_line3><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>349</LINE></wr_line3>
+  <snd_ddram_addr3><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>352</LINE></snd_ddram_addr3>
+  <snd_buff_3><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\lcd_dog_asm_driver_m16A.inc</FILE><LINE>358</LINE></snd_buff_3>
+  <clr_dsp_buffs><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>136</LINE></clr_dsp_buffs>
+  <default_buff><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>160</LINE></default_buff>
+  <main><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>25</LINE></main>
+  <read_voltage><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>50</LINE></read_voltage>
+  <bin2BCD16><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>254</LINE></bin2BCD16>
+  <unpack_bcd_to_ascii><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>293</LINE></unpack_bcd_to_ascii>
+  <display><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>30</LINE></display>
+  <line4_message><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>175</LINE></line4_message>
+  <load_msg><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>202</LINE></load_msg>
+  <start_high><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>58</LINE></start_high>
+  <high_byte><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>62</LINE></high_byte>
+  <start_low><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>68</LINE></start_low>
+  <low_byte><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>72</LINE></low_byte>
+  <compare_high><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>78</LINE></compare_high>
+  <compare_low><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>82</LINE></compare_low>
+  <capture><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>87</LINE></capture>
+  <high_byte1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>91</LINE></high_byte1>
+  <low_byte1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>100</LINE></low_byte1>
+  <compare_high1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>105</LINE></compare_high1>
+  <end><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>113</LINE></end>
+  <compare_low1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>109</LINE></compare_low1>
+  <line3_message><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>174</LINE></line3_message>
+  <tone_5V><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>378</LINE></tone_5V>
+  <delay><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>355</LINE></delay>
+  <store_bytes><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>143</LINE></store_bytes>
+  <line1_message><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>172</LINE></line1_message>
+  <line2_message><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>173</LINE></line2_message>
+  <get_msg_byte><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>214</LINE></get_msg_byte>
+  <msg_loaded><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>220</LINE></msg_loaded>
+  <bBCDx_1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>260</LINE></bBCDx_1>
+  <bBCDx_2><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>269</LINE></bBCDx_2>
+  <bBCDx_3><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>270</LINE></bBCDx_3>
+  <ASCII_table><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>334</LINE></ASCII_table>
+  <table><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>343</LINE></table>
+  <delay1><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>357</LINE></delay1>
+  <here><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>359</LINE></here>
+  <tone_loop><FILE>c:\users\jay\documents\atmel studio\6.1\vm1c\vm1c\vm1c.asm</FILE><LINE>391</LINE></tone_loop>
+ </LABELS>
+</ASSEMBLER_INFO>

@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "duty_cycle", "duty_cycle\duty_cycle.asmproj", "{F93B88D9-0366-460F-AE79-7A344DAAA682}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F93B88D9-0366-460F-AE79-7A344DAAA682}.Debug|AVR.ActiveCfg = Debug|AVR
+		{F93B88D9-0366-460F-AE79-7A344DAAA682}.Debug|AVR.Build.0 = Debug|AVR
+		{F93B88D9-0366-460F-AE79-7A344DAAA682}.Release|AVR.ActiveCfg = Release|AVR
+		{F93B88D9-0366-460F-AE79-7A344DAAA682}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

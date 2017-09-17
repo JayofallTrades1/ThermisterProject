@@ -1,0 +1,7 @@
+
+AVRASM ver. 2.1.52  c:\users\jay\documents\atmel studio\6.1\final-project\final-project\final-project.asm Mon Dec 01 10:48:37 2014
+
+[builtin](2): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16Adef.inc'
+c:\users\jay\documents\atmel studio\6.1\final-project\final-project\final-project.asm(47): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16adef.inc'
+c:\users\jay\documents\atmel studio\6.1\final-project\final-project\final-project.asm(48): error: Cannot find include file: lcd_dog_asm_driver_m16A.inc
+c:\users\jay\documents\atmel studio\6.1\final-project\final-project\final-project.asm(49): error: Cannot find include file: audio_playback_WTV20SD_beta.inc

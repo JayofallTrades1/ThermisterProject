@@ -1,0 +1,44 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.1.52</VERSION>
+ <DEVICE>"ATmega16"</DEVICE>
+ <WORKING_DIR>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16def.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\Debug/incr_decr.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>incr_decr.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>incr_decr.map</FILE>
+  <FILE>incr_decr.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <setup><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>25</LINE></setup>
+  <reset><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>37</LINE></reset>
+  <bcd_7seg><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>115</LINE></bcd_7seg>
+  <wait_for_1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>42</LINE></wait_for_1>
+  <delay1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>48</LINE></delay1>
+  <again1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>49</LINE></again1>
+  <here1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>50</LINE></here1>
+  <check_for_1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>57</LINE></check_for_1>
+  <wait_for_0><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>62</LINE></wait_for_0>
+  <delay2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>69</LINE></delay2>
+  <again2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>70</LINE></again2>
+  <here2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>71</LINE></here2>
+  <check_for_0><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>78</LINE></check_for_0>
+  <main_loop><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>85</LINE></main_loop>
+  <PBSW1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>93</LINE></PBSW1>
+  <PBSW2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>103</LINE></PBSW2>
+  <PBSW3><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>110</LINE></PBSW3>
+  <table><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>127</LINE></table>
+  <display><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\incr_decr\incr_decr\incr_decr.asm</FILE><LINE>123</LINE></display>
+ </LABELS>
+</ASSEMBLER_INFO>

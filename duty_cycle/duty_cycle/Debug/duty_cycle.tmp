@@ -1,0 +1,78 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.1.52</VERSION>
+ <DEVICE>"ATmega16"</DEVICE>
+ <WORKING_DIR>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16def.inc</FILE>
+  <FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\Debug/duty_cycle.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>duty_cycle.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>duty_cycle.map</FILE>
+  <FILE>duty_cycle.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <setup><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>28</LINE></setup>
+  <dsp_buff_1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>54</LINE></dsp_buff_1>
+  <dsp_buff_2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>55</LINE></dsp_buff_2>
+  <dsp_buff_3><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>56</LINE></dsp_buff_3>
+  <delay_30uS><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>75</LINE></delay_30uS>
+  <d30_loop><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>79</LINE></d30_loop>
+  <v_delay><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>106</LINE></v_delay>
+  <delay_40mS><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>125</LINE></delay_40mS>
+  <init_spi_lcd><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>141</LINE></init_spi_lcd>
+  <lcd_spi_transmit_CMD><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>164</LINE></lcd_spi_transmit_CMD>
+  <wait_transmit><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>175</LINE></wait_transmit>
+  <lcd_spi_transmit_DATA><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>196</LINE></lcd_spi_transmit_DATA>
+  <wait_transmit1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>207</LINE></wait_transmit1>
+  <init_lcd_dog><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>227</LINE></init_lcd_dog>
+  <start_dly_40ms><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>231</LINE></start_dly_40ms>
+  <func_set1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>235</LINE></func_set1>
+  <func_set2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>241</LINE></func_set2>
+  <bias_set><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>247</LINE></bias_set>
+  <power_ctrl><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>255</LINE></power_ctrl>
+  <follower_ctrl><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>261</LINE></follower_ctrl>
+  <contrast_set><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>267</LINE></contrast_set>
+  <display_on><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>272</LINE></display_on>
+  <clr_display><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>278</LINE></clr_display>
+  <entry_mode><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>286</LINE></entry_mode>
+  <update_lcd_dog><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>305</LINE></update_lcd_dog>
+  <wr_line1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>312</LINE></wr_line1>
+  <snd_ddram_addr><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>315</LINE></snd_ddram_addr>
+  <snd_buff_1><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>319</LINE></snd_buff_1>
+  <init_for_buff_2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>328</LINE></init_for_buff_2>
+  <wr_line2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>331</LINE></wr_line2>
+  <snd_ddram_addr2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>334</LINE></snd_ddram_addr2>
+  <snd_buff_2><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>338</LINE></snd_buff_2>
+  <init_for_buff_3><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>347</LINE></init_for_buff_3>
+  <wr_line3><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>349</LINE></wr_line3>
+  <snd_ddram_addr3><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>352</LINE></snd_ddram_addr3>
+  <snd_buff_3><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc</FILE><LINE>358</LINE></snd_buff_3>
+  <clr_dsp_buffs><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>160</LINE></clr_dsp_buffs>
+  <main><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>40</LINE></main>
+  <freq_meas_1secgate><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>109</LINE></freq_meas_1secgate>
+  <init_load><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>46</LINE></init_load>
+  <unpack><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>61</LINE></unpack>
+  <ASCII_table><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>186</LINE></ASCII_table>
+  <display><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>86</LINE></display>
+  <sec_loop><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>118</LINE></sec_loop>
+  <loop_check><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>128</LINE></loop_check>
+  <new_seed><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>142</LINE></new_seed>
+  <no_rollover><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>132</LINE></no_rollover>
+  <end><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>146</LINE></end>
+  <keep><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>135</LINE></keep>
+  <tweak><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>137</LINE></tweak>
+  <store_bytes><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>167</LINE></store_bytes>
+  <table><FILE>C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm</FILE><LINE>195</LINE></table>
+ </LABELS>
+</ASSEMBLER_INFO>

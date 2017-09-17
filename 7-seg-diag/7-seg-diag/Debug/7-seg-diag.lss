@@ -1,0 +1,134 @@
+
+AVRASM ver. 2.1.52  C:\Users\Jay\Documents\Atmel Studio\6.1\7-seg-diag\7-seg-diag\7-seg-diag.asm Sat Sep 27 18:44:02 2014
+
+C:\Users\Jay\Documents\Atmel Studio\6.1\7-seg-diag\7-seg-diag\7-seg-diag.asm(22): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16def.inc'
+                 
+                 
+                  * _7_seg_diag.asm: is a program that turns on all LEDs in the 7-sengment display if a button is pressed. 
+                  *
+                  * Descripton:  This program also counts for the debouncing effect in the button. We must use a delay of 10us
+                  *				in order to determine if the button is still logic '0'
+                  *
+                  * inputs: PBSW in PINC0
+                  *
+                  * outputs: 7-segment display in PORTB
+                  *
+                  * resgister Assignment/Purposes:
+                  * r16 = GP/delay count(outer loop)
+                  * r17 = GP/delay count (inner loop)
+                  * 
+                  * stack depth: 2 Bytes
+                 
+                  *  Created: 9/26/2014 6:35:23 PM
+                  *   Author: Suphasith Usdonvudhikai & Brandon Conklin
+                  */ 
+                 		
+                 .list
+                 				
+                  reset: 
+                 										;configure I/O ports
+000000 ef0f      	ldi r16, $ff						;Outputs are at PORTB (7 Segment display)
+000001 bb07      	out DDRB, r16						;Set up PORTB as outputs
+000002 e000      	ldi r16, $00						;Input is at PINC0 (Push Button Switch)
+000003 bb04      	out DDRC, r16						;Set up all of PORTC as inputs
+000004 ef0f      	ldi r16, $ff						;turn on all internal resistors 
+000005 bb05      	out PORTC, r16						;eliminates floating inputs
+                 
+                 stack:
+                 										;initial stack for return address (CALL and RET)
+000006 e004      	ldi r16, HIGH(RAMEND)				;loads the high bye of ram address
+000007 bf0e      	out SPH, r16						;high byte of stack pointer -> high byte of ram
+000008 e50f      	ldi r16, LOW(RAMEND)				;loads the low bye of ram address
+000009 bf0d      	out SPL, r16						;low byte of stack pointer -> low byte of ram
+                 
+                 
+                 wait_for_1:
+00000a 9b98      	sbis PINC, 0						;checks if the intial input into pin logic 1 
+00000b cffe      	rjmp wait_for_1						;if it isnt then we repeat; ensures a logic 1 is at input
+00000c 940e 0019 	call delay							;delay for 10us
+                 
+                 check_for_1:
+00000e 9b98      	sbis PINC, 0						;checks if the PBSW is released
+00000f cffa      	rjmp wait_for_1						;repeat until PBSW is released
+                 
+                 check_for_0:
+000010 9998      	sbic PINC, 0						;waits for the button to be pressed
+000011 cffe      	rjmp check_for_0					;skips this if button is pressed (logic '0')
+000012 940e 0019 	call delay							;time delay for switch debounce
+000014 9998      	sbic PINC, 0						;checks if the button is still (logic '0')
+000015 cff4      	rjmp wait_for_1						;go back to intial settings
+                 
+                 LED_ON:
+000016 e000      	ldi r16, $00						;sets up all PORTB for outputs
+000017 bb07      	out DDRB, r16						;turns on all LEDs in PORTB
+000018 cff1      	rjmp wait_for_1						;repeat again until next button press
+                 
+                 
+                 
+                 							/*SUBROUTINES*/
+                 
+000019 e00a      delay:		ldi r16, 10					;intiazlize outer loop (1us)
+00001a eb1e      again:		ldi r17, 190				;initialize inner loop (1us)
+00001b 0000      here:		nop							;waste clock cycle (2us)
+00001c 0000      			nop										
+00001d 951a       			dec r17						;r17 decrements until (z = 0) (1us)
+00001e f7e1      			brne here					;keep repeating until (z = 0) (1/2 us)
+00001f 950a      			dec r16						;outer loop decrements 
+000020 f7c9      			brne again					;keep repeating until (z = 0) (1/2 us)
+000021 9508      			ret							;return back to program main 
+                 
+                 
+
+
+RESOURCE USE INFORMATION
+------------------------
+
+Notice:
+The register and instruction counts are symbol table hit counts,
+and hence implicitly used resources are not counted, eg, the
+'lpm' instruction without operands implicitly uses r0 and z,
+none of which are counted.
+
+x,y,z are separate entities in the symbol table and are
+counted separately from r26..r31 here.
+
+.dseg memory usage only counts static data declared with .byte
+
+"ATmega16" register use summary:
+r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 r5 :   0 r6 :   0 r7 :   0 
+r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
+r16:  14 r17:   2 r18:   0 r19:   0 r20:   0 r21:   0 r22:   0 r23:   0 
+r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 r29:   0 r30:   0 r31:   0 
+x  :   0 y  :   0 z  :   0 
+Registers used: 2 out of 35 (5.7%)
+
+"ATmega16" instruction use summary:
+.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
+andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
+brne  :   2 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   2 cbi   :   0 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
+cpi   :   0 cpse  :   0 dec   :   2 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   0 jmp   :   0 
+ld    :   0 ldd   :   0 ldi   :   8 lds   :   0 lpm   :   0 lsl   :   0 
+lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   2 or    :   0 ori   :   0 out   :   6 pop   :   0 
+push  :   0 rcall :   0 ret   :   1 reti  :   0 rjmp  :   5 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   0 sbic  :   2 sbis  :   2 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
+sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   0 
+sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
+Instructions used: 10 out of 113 (8.8%)
+
+"ATmega16" memory use summary [bytes]:
+Segment   Begin    End      Code   Data   Used    Size   Use%
+---------------------------------------------------------------
+[.cseg] 0x000000 0x000044     68      0     68   16384   0.4%
+[.dseg] 0x000060 0x000060      0      0      0    1024   0.0%
+[.eseg] 0x000000 0x000000      0      0      0     512   0.0%
+
+Assembly complete, 0 errors, 0 warnings

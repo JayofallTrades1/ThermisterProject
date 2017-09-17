@@ -1,0 +1,261 @@
+
+AVRASM ver. 2.1.52  C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm Sun Oct 19 22:27:01 2014
+
+C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm(24): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16def.inc'
+C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\duty_cycle.asm(25): Including file 'C:\Users\Jay\Documents\Atmel Studio\6.1\duty_cycle\duty_cycle\lcd_dog_asm_driver_m16A.inc'
+                 
+                 
+                  * frequency_meter.asm
+                  *
+                  *  Created: 10/16/2014 6:54:57 PM
+                  *   Author: Brandon Conklin and Suphasith Usdonvudhikai
+                  */ 
+                  ;This program will take an incoming pulse waveform, and output
+                  ;the frequency value on an LCD display. Frequency is caluclated
+                  ;by counting the number of rising edges of the waveform, in a 1
+                  ;second period.
+                  ;
+                  ;Instantaneous transfer of date from waveform to LCD display (no PBSW)
+                  ;SYNC Pulse output to oscilloscope to calibrate 1 second wait period
+                  ;
+                  ;LCD display only accepts ASCII. Hex values must be converted
+                  ;
+                  ;INPUT=PORTA(PA7)(Pulse Waveform)(pull-up not required)
+                  ;OUTPUT=PORTB(PB0,3-5,7)(LCD DISPLAY)
+                  ;		 PORTA(PA6)(SYNC PULSE)
+                 
+000000 c076       rjmp setup							;avoid running through .include subs
+                 
+                 .list
+                 
+                 setup:
+000077 e50f      		ldi r16, LOW(RAMEND)		;initialize SPL
+000078 bf0d      		out SPL, r16				;with LOW RAMEND 
+000079 e004      		ldi r16, HIGH(RAMEND)		;initialize SPH
+00007a bf0e      		out SPH, r16				;with HIGH RAMEND (stack pointer now ready)
+00007b ef0f      		ldi r16, $FF				;initialize PORT-B...
+00007c bb07      		out DDRB, r16				;as output
+00007d e70f      		ldi r16, $7F				;initialize PORT-A
+00007e bb0a      		out DDRA, r16				;as output (PA6) & input (PA7)
+00007f dfb4      		rcall init_lcd_dog			;initialize the LCD display (1x)
+000080 d056      		rcall clr_dsp_buffs			;clear buff values (1x)
+000081 98de      		cbi PORTA, 6				;clear (low) the SYNC pulse
+                 main:
+000082 9ade      		sbi PORTA, 6				;set and
+000083 98de      		cbi PORTA, 6				;clear SYNC pulse (start)
+000084 d035      		rcall freq_meas_1secgate	;measure incoming pulse (PA7)
+000085 9ade      		sbi PORTA, 6				;set and
+000086 98de      		cbi PORTA, 6				;clear SYNC pulse (stop)
+                 	init_load:
+000087 e406      		ldi r16, $46				;load ASCII 'F'
+000088 9300 0060 		sts dsp_buff_1, r16			;store in SRAM
+00008a e702      		ldi r16, $72				;load ASCII 'r'
+00008b 9300 0061 		sts dsp_buff_1+1, r16		;store in SRAM
+00008d e605      		ldi r16, 'e'				;load ASCII 'e'
+00008e 9300 0062 		sts dsp_buff_1+2, r16		;store in SRAM
+000090 e701      		ldi r16, 'q'				;load ASCII 'q'
+000091 9300 0063 		sts dsp_buff_1+3, r16		;store in SRAM
+000093 e30d      		ldi r16, '='				;load ASCII '='
+000094 9300 0064 		sts dsp_buff_1+4, r16		;store in SRAM
+000096 e408      		ldi r16, 'H'				;load ASCII 'H'
+000097 9300 0069 		sts dsp_buff_1+9, r16		;store in SRAM
+000099 e70a      		ldi r16, 'z'				;load ASCII 'z'
+00009a 9300 006a 		sts dsp_buff_1+10, r16		;store in SRAM
+                 	unpack:
+00009c e00f      		ldi r16, $0F				;load and
+00009d 2ea0      		mov r10, r16				;save masking value
+00009e 2c19      		mov r1, r9					;copy high hex values 
+00009f 9412      		swap r1						;swap hex values
+0000a0 201a      		and r1, r10					;keep highest value
+0000a1 2db1      		mov r27, r1					;copy for table
+0000a2 d03c      		rcall ASCII_table			;jump to table lookup
+0000a3 9360 0065 		sts dsp_buff_1+5, r22		;store HIGHEST HEX value
+0000a5 2c29      		mov r2, r9					;copy high hex values
+0000a6 202a      		and r2, r10					;keep 2nd highest hex
+0000a7 2db2      		mov r27, r2					;copy for table
+0000a8 d036      		rcall ASCII_table			;jmp to table lookup
+0000a9 9360 0066 		sts dsp_buff_1+6, r22		;store 2ND HIGHEST HEX VALUE
+0000ab 2c38      		mov r3, r8					;copy low hex values
+0000ac 9432      		swap r3						;swap hex values
+0000ad 203a      		and r3, r10					;keep 3rd highest value
+0000ae 2db3      		mov r27, r3					;copy for table
+0000af d02f      		rcall ASCII_table			;jmp to table lookup
+0000b0 9360 0067 		sts dsp_buff_1+7, r22		;store 3RD HIGHEST HEX VALUE
+0000b2 2c48      		mov r4, r8					;copy low hex values
+0000b3 204a      		and r4, r10					;keep lowest hex value
+0000b4 2db4      		mov r27, r4					;copy for table
+0000b5 d029      		rcall ASCII_table			;jmp to table lookup
+0000b6 9360 0068 		sts dsp_buff_1+8, r22		;store LOWEST HEX VALUE
+                 	display:
+0000b8 df99      		rcall update_lcd_dog		;load dsp_buff_1 to LCD display
+0000b9 cfc8      		rjmp main					;start all over again
+                 
+                 
+                 
+                 ;freq_meas_1secgate - self-contained subroutine in which 
+                 ;a 1 sec loop is generated, during which all rising edges
+                 ;(positive) of an incoming waveform on PA7 are added up.
+                 ;
+                 ;INPUTS=PORTA(PA7)(waveform)
+                 ;registers used=r19,r18,r9,r8,r16,r17,r25
+                 ;r19:r18=loop counter
+                 ;r9:r8=edge counter
+                 ;r16=PA7 value
+                 ;r25=seeded PA7 value
+                 ;r17=tweak delay value
+                 ;
+                 ;when comparing old vs new PA7 values: 
+                 ;Z=1 means no change
+                 ;C=1 means negative edge
+                 ;looking for both not set
+                 
+                 freq_meas_1secgate:
+0000ba e000      		ldi r16, $00				;load to
+0000bb 2e90      		mov r9, r16					;set edge counter 
+0000bc 2e80      		mov r8, r16					;to zero(0)
+0000bd ea30      		ldi r19, $A0				;set loop counter }CALIBRATION
+0000be e020      		ldi r18, $00				;for 1s loop      }REQUIRED!
+0000bf b309      		in r16, PINA				;read in PINA (PA7)
+0000c0 7800      		andi r16, $80				;keep only PA7
+0000c1 2f90      		mov r25, r16				;seed value
+                 	sec_loop:
+0000c2 b309      		in r16, PINA				;read in PINA (PA7)
+0000c3 7800      		andi r16, $80				;keep only PA7
+0000c4 1709      		cp r16, r25					;compare new vs old PA7
+0000c5 f029      		breq loop_check				;Z=1(no change) 
+0000c6 f068      		brcs new_seed				;C=1(neg. change)
+0000c7 2f90      		mov r25, r16				;save new PA7 value
+0000c8 9483      		inc r8						;inc low byte of edge counter
+0000c9 f409      		brne loop_check				;jmp until low byte rollover
+0000ca 9493      		inc r9						;inc high byte of edge counter
+                 	loop_check:
+0000cb 952a      		dec r18						;dec low byte of loop counter
+0000cc f409      		brne no_rollover			;jmp until low byte rollover
+0000cd 953a      		dec r19						;dec high bytw of loop counter
+                 	no_rollover:
+0000ce 3030      		cpi r19, $00				;if loop counter =00xx
+0000cf f031      		breq end					;end subroutine
+                 	keep:
+0000d0 e011      		ldi r17, $01				;tweaking loop for in lab
+                 	tweak:
+0000d1 951a      		dec r17						;
+0000d2 f7f1      		brne tweak					;
+0000d3 cfee      		rjmp sec_loop				;start over
+                 
+                 	new_seed:
+0000d4 2f90      		mov r25, r16				;save new PA7 value
+0000d5 cff5      		rjmp loop_check				;return to loop
+                 
+                 	end:
+0000d6 9508      		ret							;return to main program
+                 		
+                 
+                 ;************************
+                 ;NAME:      clr_dsp_buffs
+                 ;FUNCTION:  Initializes dsp_buffers 1, 2, and 3 with blanks (0x20)
+                 ;ASSUMES:   Three CONTIGUOUS 16-byte dram based buffers named
+                 ;           dsp_buff_1, dsp_buff_2, dsp_buff_3.
+                 ;RETURNS:   nothing.
+                 ;MODIFIES:  r25,r26, Z-ptr
+                 ;CALLS:     none
+                 ;CALLED BY: main application and diagnostics
+                 ;********************************************************************
+                 clr_dsp_buffs:
+0000d7 e390           ldi R25, 48               ; load total length of both buffer.
+0000d8 e2a0           ldi R26, ' '              ; load blank/space into R26.
+0000d9 e0f0           ldi ZH, high (dsp_buff_1) ; Load ZH and ZL as a pointer to 1st
+0000da e6e0           ldi ZL, low (dsp_buff_1)  ; byte of buffer for line 1.
+                    
+                     ;set DDRAM address to 1st position of first line.
+                 store_bytes:
+0000db 93a1           st  Z+, R26       ; store ' ' into 1st/next buffer byte and
+                                        ; auto inc ptr to next location.
+0000dc 959a           dec  R25          ; 
+0000dd f7e9           brne store_bytes  ; cont until r25=0, all bytes written.
+0000de 9508           ret
+                 
+                 ;ASCII_table- self-contained subroutine that takes a HEX value
+                 ;and points to its associated ASCII value
+                 ;modification of BCD lookup table
+                 ;
+                 ;inputs: Z-pointer
+                 ;			-ZH is high Z
+                 ;			-ZL is low Z
+                 ;		 r16 is a place holder for adc
+                 ;		 r27 is the HEX value to be converted
+                 ;outputs: result of Z point are loaded into r22
+                 ;		  returned to be stored in SRAM
+                 
+                 ASCII_table:
+0000df e0f1      		ldi ZH, high (table * 2)	;set Z to point to start of table
+0000e0 ecec      		ldi ZL, low (table * 2)		;
+0000e1 e000      		ldi r16, $00				;clear for add w/ carry
+0000e2 0feb      		add ZL, r27					;add low byte
+0000e3 1ff0      		adc ZH, r16					;add in the CY
+0000e4 9164      		lpm r22, Z					;load bit pattern from table into r22
+0000e5 9508      		ret
+                 
+0000e6 3130
+0000e7 3332
+0000e8 3534
+0000e9 3736
+0000ea 3938
+0000eb 4241
+0000ec 4443
+0000ed 4645      table: .db $30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$41,$42,$43,$44,$45,$46
+                 		   ;0,  1,  2,  3,  4,  5,  6,  7,  8
+                 
+
+
+RESOURCE USE INFORMATION
+------------------------
+
+Notice:
+The register and instruction counts are symbol table hit counts,
+and hence implicitly used resources are not counted, eg, the
+'lpm' instruction without operands implicitly uses r0 and z,
+none of which are counted.
+
+x,y,z are separate entities in the symbol table and are
+counted separately from r26..r31 here.
+
+.dseg memory usage only counts static data declared with .byte
+
+"ATmega16" register use summary:
+r0 :   0 r1 :   4 r2 :   3 r3 :   4 r4 :   3 r5 :   0 r6 :   0 r7 :   0 
+r8 :   4 r9 :   4 r10:   5 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
+r16:  74 r17:   2 r18:   2 r19:   3 r20:   8 r21:   0 r22:   7 r23:   2 
+r24:   4 r25:   6 r26:   2 r27:   5 r28:   0 r29:   0 r30:   6 r31:   6 
+x  :   0 y  :   0 z  :   5 
+Registers used: 21 out of 35 (60.0%)
+
+"ATmega16" instruction use summary:
+.lds  :   0 .sts  :   0 adc   :   1 add   :   1 adiw  :   0 and   :   4 
+andi  :   2 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   0 brcs  :   1 break :   0 breq  :   2 brge  :   0 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
+brne  :  10 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   6 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   1 cpc   :   0 
+cpi   :   1 cpse  :   0 dec   :  10 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :  12 inc   :   2 jmp   :   0 
+ld    :   3 ldd   :   0 ldi   :  46 lds   :   0 lpm   :   2 lsl   :   0 
+lsr   :   0 mov   :  14 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   2 or    :   0 ori   :   0 out   :   7 pop   :   6 
+push  :   6 rcall :  43 ret   :  11 reti  :   0 rjmp  :   6 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   5 sbic  :   0 sbis  :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   2 sec   :   0 seh   :   0 
+sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   1 std   :   0 sts   :  11 
+sub   :   0 subi  :   0 swap  :   2 tst   :   0 wdr   :   0 
+Instructions used: 29 out of 113 (25.7%)
+
+"ATmega16" memory use summary [bytes]:
+Segment   Begin    End      Code   Data   Used    Size   Use%
+---------------------------------------------------------------
+[.cseg] 0x000000 0x0001dc    460     16    476   16384   2.9%
+[.dseg] 0x000060 0x000090      0     48     48    1024   4.7%
+[.eseg] 0x000000 0x000000      0      0      0     512   0.0%
+
+Assembly complete, 0 errors, 0 warnings

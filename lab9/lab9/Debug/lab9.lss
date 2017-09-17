@@ -1,0 +1,521 @@
+
+AVRASM ver. 2.1.52  C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm Thu Oct 30 15:11:17 2014
+
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(6): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16adef.inc'
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(7): Including file 'C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lcd_dog_asm_driver_m16A.inc'
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(182): warning: Register r18 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(183): warning: Register r19 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(238): warning: Register r18 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(239): warning: Register r19 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(240): warning: Register r20 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(241): warning: Register r21 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(243): warning: Register r18 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(244): warning: Register r19 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(245): warning: Register r20 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(246): warning: Register r21 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(248): warning: Register r22 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(316): warning: Register r13 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(317): warning: Register r14 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(318): warning: Register r15 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(319): warning: Register r18 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(320): warning: Register r19 already defined by the .DEF directive
+C:\Users\Jay\Documents\Atmel Studio\6.1\lab9\lab9\lab9.asm(322): warning: Register r17 already defined by the .DEF directive
+                 
+                 
+                 
+000000 c076      rjmp RESET
+                 
+                 .list
+                 
+                 RESET:
+000077 e004      	ldi r16, High(RAMEND)		;stack pointer setup
+000078 bf0e      	out SPH, r16
+000079 e50f      	ldi r16, Low(RAMEND)
+00007a bf0d      	out SPL, r16
+                 
+00007b e000      	ldi r16, $00				;setup port
+00007c bb0a      	out DDRA, r16				;PORTA as inputs
+00007d ef0f      	ldi r16, $FF				;initialize PORTB
+00007e bb07      	out DDRB, r16				;as outputs (LCD Display)
+                 
+                 
+00007f dfb4      	rcall init_lcd_dog			;initialize the LCD display (1x)
+000080 d00d      	rcall clr_dsp_buffs			;clear buff values (1x)
+000081 d014      	rcall default_buff			;set up buffer for display
+000082 dfcf      	rcall update_lcd_dog		;display buffers onto lcd
+                 
+                 SETUP_ADC:
+000083 e804      	ldi r16, $84				;enable ADC and ck/16 by setting ADEN, ADPS2:0
+000084 b906      	out ADCSRA, r16				
+000085 ec03      	ldi r16, $C3				;2.56 Vref, ADC3 single ended
+000086 b907      	out ADMUX, r16				;input right justified data
+                 
+                 MAIN:
+000087 d042      	rcall adc_read				;read voltage values
+000088 d048      	rcall mpy16u				;16 bit multiplication (r9:r8) by (r19:r18)
+000089 d058      	rcall div32u				;32-bit / 32-bit division
+00008a d078      	rcall bin2bcd16				;converts hex to bcd
+00008b d090      	rcall unpack_bcd_to_ascii 	;unpacks bcd
+00008c dfc5      	rcall update_lcd_dog		;outputs
+00008d cff9      	rjmp MAIN					;repeat
+                 
+                 
+                 
+                 ;********************************************************************
+                 ;NAME:      clr_dsp_buffs
+                 ;FUNCTION:  Initializes dsp_buffers 1, 2, and 3 with blanks (0x20)
+                 ;ASSUMES:   Three CONTIGUOUS 16-byte dram based buffers named
+                 ;           dsp_buff_1, dsp_buff_2, dsp_buff_3.
+                 ;RETURNS:   nothing.
+                 ;MODIFIES:  r25,r26, Z-ptr
+                 ;CALLS:     none
+                 ;CALLED BY: main application and diagnostics
+                 ;********************************************************************
+                 clr_dsp_buffs:
+00008e e390           ldi R25, 48               ; load total length of both buffer.
+00008f e2a0           ldi R26, ' '              ; load blank/space into R26.
+000090 e0f0           ldi ZH, high (dsp_buff_1) ; Load ZH and ZL as a pointer to 1st
+000091 e6e0           ldi ZL, low (dsp_buff_1)  ; byte of buffer for line 1.
+                    
+                     ;set DDRAM address to 1st position of first line.
+                 store_bytes:
+000092 93a1           st  Z+, R26       ; store ' ' into 1st/next buffer byte and
+                                        ; auto inc ptr to next location.
+000093 959a           dec  R25          ; 
+000094 f7e9           brne store_bytes  ; cont until r25=0, all bytes written.
+000095 9508           ret
+                 
+                 ;********************************************************************
+                 ;NAME:			default_buff
+                 ;FUNCTION:		initializes all three lines in buff
+                 ;ASSUMES:		BYTE has been allocated in SRAM
+                 ;RETURNS:		nothing
+                 ;MODIFIES:		SRAM
+                 ;CALLS:			load_msg
+                 ;CALLED BY:		reset
+                 ;********************************************************************
+                 
+                 default_buff:
+000096 e0f1      		ldi ZH, HIGH(line1_message<<1)
+000097 e4e0      		ldi ZL, LOW(line1_message<<1)
+000098 d022      		rcall load_msg
+000099 e0f1      		ldi ZH, HIGH(line2_message<<1)
+00009a e5e2      		ldi ZL, LOW(line2_message<<1)
+00009b d01f      		rcall load_msg
+00009c e0f1      		ldi ZH, HIGH(line3_message<<1)
+00009d e6e4      		ldi ZL, LOW(line3_message<<1)
+00009e d01c      		rcall load_msg
+00009f 9508      		ret										
+                 
+0000a0 2001
+0000a1 2020
+0000a2 2e20
+0000a3 2020
+0000a4 2020
+0000a5 4456
+0000a6 2043
+0000a7 2020
+0000a8 0020      line1_message: .db 1, "    .    VDC    ", 0		;string 1
+0000a9 2d01
+0000aa 2d2d
+0000ab 2d2d
+0000ac 2d2d
+0000ad 2d2d
+0000ae 2d2d
+0000af 2d2d
+0000b0 2d2d
+0000b1 002d      line2_message: .db 1, "----------------", 0		;string 2
+0000b2 4101
+0000b3 7475
+0000b4 526f
+0000b5 6e75
+0000b6 2020
+0000b7 2020
+0000b8 5620
+0000b9 314d
+0000ba 0061      line3_message: .db 1, "AutoRun     VM1a", 0		;string 3
+                 
+                 ;*******************************************************************
+                 ;NAME:      load_msg
+                 ;FUNCTION:  Loads a predefined string msg into a specified diplay
+                 ;           buffer.
+                 ;ASSUMES:   Z = offset of message to be loaded. Msg format is 
+                 ;           defined below.
+                 ;RETURNS:   nothing.
+                 ;MODIFIES:  r16, Y, Z
+                 ;CALLS:     nothing
+                 ;CALLED BY:  
+                 ;********************************************************************
+                 ; Message structure:
+                 ;   label:  .db <buff num>, <text string/message>, <end of string>
+                 ;
+                 ; Message examples (also see Messages at the end of this file/module):
+                 ;   msg_1: .db 1,"First Message ", 0   ; loads msg into buff 1, eom=0
+                 ;   msg_2: .db 1,"Another message ", 0 ; loads msg into buff 1, eom=0
+                 ;
+                 ; Notes: 
+                 ;   a) The 1st number indicates which buffer to load (either 1, 2, or 3).
+                 ;   b) The last number (zero) is an 'end of string' indicator.
+                 ;   c) Y = ptr to disp_buffer
+                 ;      Z = ptr to message (passed to subroutine)
+                 ;********************************************************************
+                 load_msg:
+0000bb e0d0           ldi YH, high (dsp_buff_1) ; Load YH and YL as a pointer to 1st
+0000bc e6c0           ldi YL, low (dsp_buff_1)  ; byte of dsp_buff_1 (Note - assuming 
+                                                ; (dsp_buff_1 for now).
+0000bd 9105           lpm R16, Z+               ; get dsply buff number (1st byte of msg).
+0000be 3001           cpi r16, 1                ; if equal to '1', ptr already setup.
+0000bf f021           breq get_msg_byte         ; jump and start message load.
+0000c0 9660           adiw YH:YL, 16            ; else set ptr to dsp buff 2.
+0000c1 3002           cpi r16, 2                ; if equal to '2', ptr now setup.
+0000c2 f009           breq get_msg_byte         ; jump and start message load.
+0000c3 9660           adiw YH:YL, 16            ; else set ptr to dsp buff 2.
+                         
+                 get_msg_byte:
+0000c4 9105           lpm R16, Z+               ; get next byte of msg and see if '0'.        
+0000c5 3000           cpi R16, 0                ; if equal to '0', end of message reached.
+0000c6 f011           breq msg_loaded           ; jump and stop message loading operation.
+0000c7 9309           st Y+, R16                ; else, store next byte of msg in buffer.
+0000c8 cffb           rjmp get_msg_byte         ; jump back and continue...
+                 msg_loaded:
+0000c9 9508           ret
+                 
+                 ;********************************************************************
+                 ;NAME:			adc_read
+                 ;FUNCTION:		reads in voltage values using ADC
+                 ;ASSUMES:		ADC is set up
+                 ;RETURNS:		r9:r8 (10-bit resolution right justified)
+                 ;MODIFIES:		R9:R8
+                 ;CALLS:			nothing
+                 ;CALLED BY:		main
+                 ;********************************************************************
+                 
+                 adc_read:
+0000ca 9a36      	sbi ADCSRA, ADSC			;start conversion
+                 POLLING:						;wait until end of conversion
+0000cb 9b34      	sbis ADCSRA, ADIF			;end of conversion yet?
+0000cc cffe      	rjmp POLLING				;repeat until end of conversion 
+0000cd 9a34      	sbi ADCSRA, ADIF			;write 1 to clear flag
+0000ce b084      	in r8, ADCL					;read low byte
+0000cf b095      	in r9, ADCH					;read high byte
+0000d0 9508      	ret							;return 
+                 
+                 	
+                 ;***************************************************************************
+                 ;*
+                 ;* "mpy16u" - 16x16 Bit Unsigned Multiplication
+                 ;*
+                 ;* This subroutine multiplies the two 16-bit register variables 
+                 ;* mp16uH:mp16uL and mc16uH:mc16uL.
+                 ;* The result is placed in m16u3:m16u2:m16u1:m16u0.
+                 ;*  
+                 ;* Number of words	:14 + return
+                 ;* Number of cycles	:153 + return
+                 ;* Low registers used	:None
+                 ;* High registers used  :7 (mp16uL,mp16uH,mc16uL/m16u0,mc16uH/m16u1,m16u2,
+                 ;*                          m16u3,mcnt16u)	
+                 ;*
+                 ;***************************************************************************
+                 
+                 ;***** Subroutine Register Variables
+                 mpy16u:
+                 .def	mc16uL	=r8			;multiplicand low byte
+                 .def	mc16uH	=r9			;multiplicand high byte
+                 .def	mp16uL	=r18		;multiplier low byte
+                 .def	mp16uH	=r19		;multiplier high byte
+                 .def	m16u0	=r18		;result byte 0 (LSB)
+                 .def	m16u1	=r19		;result byte 1
+                 .def	m16u2	=r20		;result byte 2
+                 .def	m16u3	=r21		;result byte 3 (MSB)
+                 .def	mcnt16u	=r22		;loop counter
+                 
+                 ;***** Code
+0000d1 e322      	ldi r18, 50 			;conversion factor low byte (0050)
+0000d2 e030      	ldi r19, $00			;conversion factor high bye (0050)
+                 
+0000d3 2755      	clr	m16u3				;clear 2 highest bytes of result
+0000d4 2744      	clr	m16u2
+0000d5 e160      	ldi	mcnt16u,16			;init loop counter
+0000d6 9536      	lsr	mp16uH
+0000d7 9527      	ror	mp16uL
+                 
+0000d8 f410      m16u_1:	brcc	noad8		;if bit 0 of multiplier set
+0000d9 0d48      	add	m16u2,mc16uL		;add multiplicand Low to byte 2 of res
+0000da 1d59      	adc	m16u3,mc16uH		;add multiplicand high to byte 3 of res
+0000db 9557      noad8:	ror	m16u3			;shift right result byte 3
+0000dc 9547      	ror	m16u2				;rotate right result byte 2
+0000dd 9537      	ror	m16u1				;rotate result byte 1 and multiplier High
+0000de 9527      	ror	m16u0				;rotate result byte 0 and multiplier Low
+0000df 956a      	dec	mcnt16u				;decrement loop counter
+0000e0 f7b9      	brne	m16u_1			;if not done, loop more
+0000e1 9508      	ret
+                 
+                 
+                 ;***************************************************************************
+                 ;*
+                 ;* "div32u" - 32/32 Bit Unsigned Division
+                 ;*
+                 ;* Ken Short
+                 ;*
+                 ;* This subroutine divides the two 32-bit numbers 
+                 ;* "dd32u3:dd32u2:dd32u1:dd32u0" (dividend) and "dv32u3:dv32u2:dv32u3:dv32u2"
+                 ;* (divisor). 
+                 ;* The result is placed in "dres32u3:dres32u2:dres32u3:dres32u2" and the
+                 ;* remainder in "drem32u3:drem32u2:drem32u3:drem32u2".
+                 ;*  
+                 ;* Number of words	:
+                 ;* Number of cycles	:655/751 (Min/Max) ATmega16
+                 ;* #Low registers used	:2 (drem16uL,drem16uH)
+                 ;* #High registers used  :5 (dres16uL/dd16uL,dres16uH/dd16uH,dv16uL,dv16uH,
+                 ;*			    dcnt16u)
+                 ;* A $0000 divisor returns $FFFF
+                 ;*
+                 ;***************************************************************************
+                 
+                 div32u:
+                 ;***** Subroutine Register Variables
+                 .def	drem32u0=r12    ;remainder
+                 .def	drem32u1=r13
+                 .def	drem32u2=r14
+                 .def	drem32u3=r15
+                 
+                 .def	dres32u0=r18    ;result (quotient)
+                 .def	dres32u1=r19
+                 .def	dres32u2=r20
+                 .def	dres32u3=r21
+                 
+                 .def	dd32u0	=r18    ;dividend
+                 .def	dd32u1	=r19
+                 .def	dd32u2	=r20
+                 .def	dd32u3	=r21
+                 
+                 .def	dv32u0	=r22    ;divisor
+                 .def	dv32u1	=r23
+                 .def	dv32u2	=r24
+                 .def	dv32u3	=r25
+                 
+                 .def	dcnt32u	=r17
+                 
+0000e2 e06a      ldi r22, 10
+0000e3 e070      ldi r23, 0
+0000e4 e080      ldi r24, 0
+0000e5 e090      ldi r25, 0
+                 
+                 ;***** Code
+0000e6 24cc      	clr	drem32u0			;clear remainder Low byte
+0000e7 24dd          clr drem32u1
+0000e8 24ee          clr drem32u2
+0000e9 18ff      	sub	drem32u3,drem32u3	;clear remainder High byte and carry
+0000ea e211      	ldi	dcnt32u,33			;init loop counter
+                 d32u_1:
+0000eb 1f22      	rol	dd32u0				;shift left dividend
+0000ec 1f33      	rol	dd32u1
+0000ed 1f44      	rol	dd32u2    
+0000ee 1f55      	rol	dd32u3
+0000ef 951a      	dec	dcnt32u				;decrement counter
+0000f0 f409      	brne	d32u_2			;if done
+0000f1 9508      	ret						;return
+                 d32u_2:
+0000f2 1ccc      	rol	drem32u0			;shift dividend into remainder
+0000f3 1cdd          rol	drem32u1
+0000f4 1cee          rol	drem32u2
+0000f5 1cff      	rol	drem32u3
+                 
+0000f6 1ac6      	sub	drem32u0,dv32u0		;remainder = remainder - divisor
+0000f7 0ad7          sbc	drem32u1,dv32u1
+0000f8 0ae8          sbc	drem32u2,dv32u2
+0000f9 0af9      	sbc	drem32u3,dv32u3	
+0000fa f430      	brcc	d32u_3			;branch if reult is pos or zero
+                 
+0000fb 0ec6      	add	drem32u0,dv32u0 	;if result negative restore remainder
+0000fc 1ed7      	adc	drem32u1,dv32u1
+0000fd 1ee8      	adc	drem32u2,dv32u2
+0000fe 1ef9      	adc	drem32u3,dv32u3
+0000ff 9488      	clc						;clear carry to be shifted into result
+000100 cfea      	rjmp	d32u_1			;else
+000101 9408      d32u_3:	sec					;set carry to be shifted into result
+000102 cfe8      	rjmp	d32u_1
+                 
+                 ;***************************************************************************
+                 ;*
+                 ;* "bin2BCD16" - 16-bit Binary to BCD conversion
+                 ;*
+                 ;* This subroutine converts a 16-bit number (fbinH:fbinL) to a 5-digit
+                 ;* packed BCD number represented by 3 bytes (tBCD2:tBCD1:tBCD0).
+                 ;* MSD of the 5-digit number is placed in the lowermost nibble of tBCD2.
+                 ;*
+                 ;* Number of words	:25
+                 ;* Number of cycles	:751/768 (Min/Max)
+                 ;* Low registers used	:3 (tBCD0,tBCD1,tBCD2)
+                 ;* High registers used  :4(fbinL,fbinH,cnt16a,tmp16a)	
+                 ;* Pointers used	:Z
+                 ;*
+                 ;***************************************************************************
+                 
+                 ;***** Subroutine Register Variables
+                 
+                 .equ	AtBCD0	=13			;address of tBCD0
+                 .equ	AtBCD2	=15			;address of tBCD1
+                 
+                 .def	tBCD0	=r13		;BCD value digits 1 and 0
+                 .def	tBCD1	=r14		;BCD value digits 3 and 2
+                 .def	tBCD2	=r15		;BCD value digit 4
+                 .def	fbinL	=r18		;binary value Low byte
+                 .def	fbinH	=r19		;binary value High byte
+                 .def	cnt16a	=r16		;loop counter
+                 .def	tmp16a	=r17		;temporary value
+                 
+                 ;***** Code
+                 
+                 bin2BCD16:
+000103 e100      	ldi	cnt16a,16	;Init loop counter	
+000104 24ff      	clr	tBCD2		;clear result (3 bytes)
+000105 24ee      	clr	tBCD1		
+000106 24dd      	clr	tBCD0		
+000107 27ff      	clr	ZH		;clear ZH (not needed for AT90Sxx0x)
+000108 0f22      bBCDx_1:lsl	fbinL		;shift input value
+000109 1f33      	rol	fbinH		;through all bytes
+00010a 1cdd      	rol	tBCD0		;
+00010b 1cee      	rol	tBCD1
+00010c 1cff      	rol	tBCD2
+00010d 950a      	dec	cnt16a		;decrement loop counter
+00010e f409      	brne	bBCDx_2		;if counter not zero
+00010f 9508      	ret			;   return
+                 
+000110 e1e0      bBCDx_2:ldi	r30,AtBCD2+1	;Z points to result MSB + 1
+                 bBCDx_3:
+000111 9112      	ld	tmp16a,-Z	;get (Z) with pre-decrement
+000112 5f1d      	subi	tmp16a,-$03	;add 0x03
+000113 fd13      	sbrc	tmp16a,3	;if bit 3 not clear
+000114 8310      	st	Z,tmp16a	;	store back
+000115 8110      	ld	tmp16a,Z	;get (Z)
+000116 5d10      	subi	tmp16a,-$30	;add 0x30
+000117 fd17      	sbrc	tmp16a,7	;if bit 7 not clear
+000118 8310      	st	Z,tmp16a	;	store back
+000119 30ed      	cpi	ZL,AtBCD0	;done all three?
+00011a f7b1      	brne	bBCDx_3		;loop again if not
+00011b cfec      	rjmp	bBCDx_1		
+                 
+                 
+                 ;**************************************************************************
+                 ;NAME:		unpack_bcd_to_ascii
+                 ;FUNCTION:	unpacks bcd numbers and converts to ascii
+                 ;ASSUMES:	r14:r3 are bcd values
+                 ;RETURNS:	values stored in buffers
+                 ;MODIFIES:	SRAM
+                 ;CALLS:		ASCII_table
+                 ;CALLED BY:	MAIN
+                 ;**************************************************************************
+                 
+                 unpack_bcd_to_ascii:
+00011c e00f      		ldi r16, $0F				;load and
+00011d 2ea0      		mov r10, r16				;save masking value
+00011e 2c3e      		mov r3, r14					;copy BCD2&3
+00011f 9432      		swap r3						;SWAP BCD2&3
+000120 203a      		and r3, r10					;save BCD3
+000121 2db3      		mov r27, r3					;copy for table
+000122 d016      		rcall ASCII_table			;jmp to table lookup
+000123 9360 0064 		sts dsp_buff_1+4, r22		;store BCD3
+000125 2c2e      		mov r2, r14					;copy BCD2&3
+000126 202a      		and r2, r10					;keep BCD2
+000127 2db2      		mov r27, r2					;copy for table
+000128 d010      		rcall ASCII_table			;jmp to table lookup
+000129 9360 0066 		sts dsp_buff_1+6, r22		;store BCD2
+00012b 2c1d      		mov r1, r13					;copy BCD1&0
+00012c 9412      		swap r1						;swap BCD1&0
+00012d 201a      		and r1, r10					;save BCD1
+00012e 2db1      		mov r27, r1					;copy for table
+00012f d009      		rcall ASCII_table			;jmp to table lookup
+000130 9360 0067 		sts dsp_buff_1+7, r22		;store BCD1
+000132 2c0d      		mov r0, r13					;copy BCD1&0
+000133 0c0a      		add r0, r10					;save BCD0
+000134 2db0      		mov r27, r0					;copy for table
+000135 d003      		rcall ASCII_table			;jmp to table lookup
+000136 9360 0068 		sts dsp_buff_1+8, r22		;store BCD0
+000138 9508      		ret							;return
+                 
+                 ;**************************************************************************
+                 ;ASCII_table- self-contained subroutine that takes a HEX value
+                 ;and points to its associated ASCII value
+                 ;modification of BCD lookup table
+                 ;
+                 ;inputs: Z-pointer
+                 ;			-ZH is high Z
+                 ;			-ZL is low Z
+                 ;		 r16 is a place holder for adc
+                 ;		 r27 is the HEX value to be converted
+                 ;outputs: result of Z point are loaded into r22
+                 ;		  returned to be stored in SRAM
+                 ;***************************************************************************
+                 
+                 ASCII_table:
+000139 e0f2      		ldi ZH, high (table * 2)	;set Z to point to start of table
+00013a e8e0      		ldi ZL, low (table * 2)		;
+00013b e000      		ldi r16, $00				;clear for add w/ carry
+00013c 0feb      		add ZL, r27					;add low byte
+00013d 1ff0      		adc ZH, r16					;add in the CY
+00013e 9164      		lpm r22, Z					;load bit pattern from table into r22
+00013f 9508      		ret
+                 
+000140 3130
+000141 3332
+000142 3534
+000143 3736
+000144 3938      table: .db $30,$31,$32,$33,$34,$35,$36,$37,$38,$39
+                 		   ;0,  1,  2,  3,  4,  5,  6,  7,  8,	9
+                 
+                 
+
+
+RESOURCE USE INFORMATION
+------------------------
+
+Notice:
+The register and instruction counts are symbol table hit counts,
+and hence implicitly used resources are not counted, eg, the
+'lpm' instruction without operands implicitly uses r0 and z,
+none of which are counted.
+
+x,y,z are separate entities in the symbol table and are
+counted separately from r26..r31 here.
+
+.dseg memory usage only counts static data declared with .byte
+
+"ATmega16A" register use summary:
+r0 :   3 r1 :   4 r2 :   3 r3 :   4 r4 :   0 r5 :   0 r6 :   0 r7 :   0 
+r8 :   2 r9 :   2 r10:   5 r11:   0 r12:   4 r13:   8 r14:   8 r15:   7 
+r16:  61 r17:  10 r18:   5 r19:   5 r20:  12 r21:   4 r22:  12 r23:   5 
+r24:   7 r25:   5 r26:   2 r27:   5 r28:   3 r29:   3 r30:  11 r31:  10 
+x  :   0 y  :   1 z  :  11 
+Registers used: 29 out of 35 (82.9%)
+
+"ATmega16A" instruction use summary:
+.lds  :   0 .sts  :   0 adc   :   5 add   :   4 adiw  :   2 and   :   3 
+andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   2 brcs  :   0 break :   0 breq  :   3 brge  :   0 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
+brne  :  11 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   3 cbr   :   0 
+clc   :   1 clh   :   0 cli   :   0 cln   :   0 clr   :   9 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
+cpi   :   4 cpse  :   0 dec   :  10 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :  12 inc   :   0 jmp   :   0 
+ld    :   5 ldd   :   0 ldi   :  55 lds   :   0 lpm   :   4 lsl   :   1 
+lsr   :   1 mov   :   9 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   2 or    :   0 ori   :   0 out   :   9 pop   :   6 
+push  :   6 rcall :  52 ret   :  17 reti  :   0 rjmp  :   9 rol   :  12 
+ror   :   5 sbc   :   3 sbci  :   0 sbi   :   5 sbic  :   0 sbis  :   1 
+sbiw  :   0 sbr   :   0 sbrc  :   2 sbrs  :   2 sec   :   1 seh   :   0 
+sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   4 std   :   0 sts   :   4 
+sub   :   2 subi  :   2 swap  :   2 tst   :   0 wdr   :   0 
+Instructions used: 39 out of 113 (34.5%)
+
+"ATmega16A" memory use summary [bytes]:
+Segment   Begin    End      Code   Data   Used    Size   Use%
+---------------------------------------------------------------
+[.cseg] 0x000000 0x00028a    586     64    650   16384   4.0%
+[.dseg] 0x000060 0x000090      0     48     48    1024   4.7%
+[.eseg] 0x000000 0x000000      0      0      0     512   0.0%
+
+Assembly complete, 0 errors, 17 warnings

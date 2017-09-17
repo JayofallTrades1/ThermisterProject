@@ -1,0 +1,81 @@
+
+AVRASM ver. 2.1.52  C:\Users\Jay\Documents\Atmel Studio\6.1\freq_meas\freq_meas\freq_meas.asm Mon Nov 17 01:28:46 2014
+
+C:\Users\Jay\Documents\Atmel Studio\6.1\freq_meas\freq_meas\freq_meas.asm(23): Including file 'C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR Assembler\Native\2.1.39.1005\avrassembler\Include\m16def.inc'
+C:\Users\Jay\Documents\Atmel Studio\6.1\freq_meas\freq_meas\freq_meas.asm(24): Including file 'C:\Users\Jay\Documents\Atmel Studio\6.1\freq_meas\freq_meas\lcd_dog_asm_driver_m16A.inc'
+                 
+                 
+                  * frequency_meter.asm
+                  *
+                  *  Created: 10/16/2014 6:54:57 PM
+                  *   Author: Suphasith Usdonvudhikai and Brandon Conklin
+                  */ 
+                  ;This program will take an incoming pulse waveform, and output
+                  ;the frequency value on an LCD display. Frequency is caluclated
+                  ;by counting the number of rising edges of the waveform, in a 1
+                  ;second period.
+                  ;
+                  ;Instantaneous transfer of date from waveform to LCD display (no PBSW)
+                  ;SYNC Pulse output to oscilloscope to calibrate 1 second wait period
+                  ;
+                  ;LCD display only accepts ASCII. Hex values must be converted
+                  ;
+                  ;INPUT=PORTA(PA7)(Pulse Waveform)(pull-up not required)
+                  ;OUTPUT=PORTB(PB0,3-5,7)(LCD DISPLAY)
+                  ;		 PORTA(PA6)(SYNC PULSE)
+                 
+000000 c076      rjmp RESET
+
+
+RESOURCE USE INFORMATION
+------------------------
+
+Notice:
+The register and instruction counts are symbol table hit counts,
+and hence implicitly used resources are not counted, eg, the
+'lpm' instruction without operands implicitly uses r0 and z,
+none of which are counted.
+
+x,y,z are separate entities in the symbol table and are
+counted separately from r26..r31 here.
+
+.dseg memory usage only counts static data declared with .byte
+
+"ATmega16" register use summary:
+r0 :   0 r1 :   4 r2 :   3 r3 :   4 r4 :   3 r5 :   0 r6 :   0 r7 :   0 
+r8 :   4 r9 :   4 r10:   5 r11:   0 r12:   0 r13:   0 r14:   0 r15:   0 
+r16:  71 r17:   2 r18:   2 r19:   3 r20:   8 r21:   3 r22:   7 r23:   2 
+r24:   4 r25:   6 r26:   2 r27:   5 r28:   0 r29:   0 r30:   6 r31:   6 
+x  :   0 y  :   0 z  :   5 
+Registers used: 22 out of 35 (62.9%)
+
+"ATmega16" instruction use summary:
+.lds  :   0 .sts  :   0 adc   :   1 add   :   1 adiw  :   0 and   :   4 
+andi  :   2 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   0 brcs  :   1 break :   0 breq  :   2 brge  :   0 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
+brne  :  10 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   6 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   1 cpc   :   0 
+cpi   :   1 cpse  :   0 dec   :  10 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :  12 inc   :   2 jmp   :   0 
+ld    :   3 ldd   :   0 ldi   :  46 lds   :   0 lpm   :   2 lsl   :   0 
+lsr   :   0 mov   :  14 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   2 or    :   0 ori   :   0 out   :   7 pop   :   6 
+push  :   6 rcall :  46 ret   :  13 reti  :   0 rjmp  :   6 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   5 sbic  :   0 sbis  :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   2 sec   :   0 seh   :   0 
+sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   1 std   :   0 sts   :  11 
+sub   :   0 subi  :   0 swap  :   2 tst   :   0 wdr   :   0 
+Instructions used: 29 out of 113 (25.7%)
+
+"ATmega16" memory use summary [bytes]:
+Segment   Begin    End      Code   Data   Used    Size   Use%
+---------------------------------------------------------------
+[.cseg] 0x000000 0x0001e0    470     10    480   16384   2.9%
+[.dseg] 0x000060 0x000090      0     48     48    1024   4.7%
+[.eseg] 0x000000 0x000000      0      0      0     512   0.0%
+
+Assembly complete, 0 errors, 0 warnings
